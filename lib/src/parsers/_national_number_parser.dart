@@ -14,10 +14,7 @@ abstract class NationalNumberParser {
     final nationalPrefix = metadata.nationalPrefix;
     if (nationalPrefix == null) return ('', nationalNumber);
     if (nationalNumber.startsWith(nationalPrefix)) {
-      return (
-        nationalPrefix,
-        nationalNumber.substring(nationalPrefix.length),
-      );
+      return (nationalPrefix, nationalNumber.substring(nationalPrefix.length));
     }
     return ('', nationalNumber);
   }
@@ -33,8 +30,9 @@ abstract class NationalNumberParser {
     String nationalNumber,
     PhoneMetadata metadata,
   ) {
-    final patterns =
-        MetadataFinder.findMetadataPatternsForIsoCode(metadata.isoCode);
+    final patterns = MetadataFinder.findMetadataPatternsForIsoCode(
+      metadata.isoCode,
+    );
     final nationalPrefixForParsing = patterns.nationalPrefixForParsing;
     final transformRule = patterns.nationalPrefixTransformRule;
 

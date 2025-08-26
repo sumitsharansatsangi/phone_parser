@@ -21,21 +21,33 @@ void main() {
       expect(fix('0099', callerCountryMetadata: metadataFR), ('00', '99'));
     });
 
-    test('should remove remove 00 and 011 prefixes, if no metadata provided',
-        () {
-      expect(fix('00654'), ('00', '654'));
-      expect(fix('011654'), ('011', '654'));
-    });
+    test(
+      'should remove remove 00 and 011 prefixes, if no metadata provided',
+      () {
+        expect(fix('00654'), ('00', '654'));
+        expect(fix('011654'), ('011', '654'));
+      },
+    );
 
-    test('should not remove international prefix if country code not following',
-        () {
-      final frMetadata = MetadataFinder.findMetadataForIsoCode(IsoCode.FR);
-      final beMetadata = MetadataFinder.findMetadataForIsoCode(IsoCode.BE);
+    test(
+      'should not remove international prefix if country code not following',
+      () {
+        final frMetadata = MetadataFinder.findMetadataForIsoCode(IsoCode.FR);
+        final beMetadata = MetadataFinder.findMetadataForIsoCode(IsoCode.BE);
 
-      expect(fix('0032', destinationCountryMetadata: beMetadata), ('00', '32'));
-      expect(fix('0033', destinationCountryMetadata: beMetadata), ('', '0033'));
-      expect(
-          fix('00777', destinationCountryMetadata: frMetadata), ('', '00777'));
-    });
+        expect(fix('0032', destinationCountryMetadata: beMetadata), (
+          '00',
+          '32',
+        ));
+        expect(fix('0033', destinationCountryMetadata: beMetadata), (
+          '',
+          '0033',
+        ));
+        expect(fix('00777', destinationCountryMetadata: frMetadata), (
+          '',
+          '00777',
+        ));
+      },
+    );
   });
 }

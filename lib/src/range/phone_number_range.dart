@@ -6,12 +6,12 @@ class PhoneNumberRange {
   final PhoneNumber end;
   final String countryCode;
 
-  PhoneNumberRange(
-    this.start,
-    this.end,
-  )   : assert(start.isoCode == end.isoCode,
-            'Cannot range with different iso codes'),
-        countryCode = start.countryCode;
+  PhoneNumberRange(this.start, this.end)
+    : assert(
+        start.isoCode == end.isoCode,
+        'Cannot range with different iso codes',
+      ),
+      countryCode = start.countryCode;
 
   @override
   String toString() => '${start.international} - ${end.international}';

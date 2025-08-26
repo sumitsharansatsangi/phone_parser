@@ -30,7 +30,7 @@ const countryCodeToIsoCode = {
     IsoCode.TT,
     IsoCode.VC,
     IsoCode.VG,
-    IsoCode.VI
+    IsoCode.VI,
   ],
   '355': [IsoCode.AL],
   '374': [IsoCode.AM],

@@ -1215,7 +1215,7 @@ const metadataPatternsByIsoCode = {
     voiceMail: r"",
   ),
   IsoCode.GB: PhoneMetadataPatterns(
-    nationalPrefixForParsing: null,
+    nationalPrefixForParsing: r"0|180020",
     nationalPrefixTransformRule: null,
     general: r"[1-357-9]\d{9}|[18]\d{8}|8\d{6}",
     mobile:
@@ -1283,7 +1283,7 @@ const metadataPatternsByIsoCode = {
     voiceMail: r"",
   ),
   IsoCode.GG: PhoneMetadataPatterns(
-    nationalPrefixForParsing: r"([25-9]\d{5})$|0",
+    nationalPrefixForParsing: r"([25-9]\d{5})$|0|180020",
     nationalPrefixTransformRule: r"1481$1",
     general: r"(?:1481|[357-9]\d{3})\d{6}|8\d{6}(?:\d{2})?",
     mobile: r"7(?:(?:781|839)\d|911[17])\d{5}",
@@ -1348,9 +1348,9 @@ const metadataPatternsByIsoCode = {
     nationalPrefixForParsing: null,
     nationalPrefixTransformRule: null,
     general: r"[2-9]\d{6}",
-    mobile: r"556\d{4}|(?:[23679]\d|4[015]|5[0-489])\d{5}",
+    mobile: r"556\d{4}|(?:[23679]\d|4[015]|5[0-489]|8[67])\d{5}",
     fixedLine:
-        r"(?:4(?:[23]\d\d|4(?:1[024679]|[6-9]\d))|5(?:5(?:3\d|4[0-7])|6[67]\d|7(?:1[04]|2[035]|3[58]|48))|8\d{3})\d{3}",
+        r"(?:4(?:[23]\d\d|4(?:1[024679]|[6-9]\d))|5(?:5(?:3\d|4[0-7])|6[67]\d|7(?:1[04]|2[035]|3[58]|48))|8[0-589]\d\d)\d{3}",
     voip: r"",
     tollFree: r"",
     premiumRate: r"",
@@ -1476,7 +1476,7 @@ const metadataPatternsByIsoCode = {
     nationalPrefixForParsing: null,
     nationalPrefixTransformRule: null,
     general: r"(?:[2-8]\d{3}|9008)\d{3}",
-    mobile: r"(?:510|6\d\d|7(?:[0-5]\d|6[019]|70))\d{4}",
+    mobile: r"(?:51[01]|6\d\d|7(?:[0-5]\d|6[019]|70))\d{4}",
     fixedLine:
         r"(?:2(?:1[6-9]|2[0-35-9]|3[1-4]|5[3-9]|6\d|7[0-79])|3(?:2[25-9]|3\d)|4(?:4[0-24]|5[56])|50[0-6]|77[1-57])\d{4}",
     voip: r"515\d{4}",
@@ -1622,7 +1622,7 @@ const metadataPatternsByIsoCode = {
     voiceMail: r"151\d{8,9}",
   ),
   IsoCode.IM: PhoneMetadataPatterns(
-    nationalPrefixForParsing: r"([25-8]\d{5})$|0",
+    nationalPrefixForParsing: r"([25-8]\d{5})$|0|180020",
     nationalPrefixTransformRule: r"1624$1",
     general: r"1624\d{6}|(?:[3578]\d|90)\d{8}",
     mobile: r"76245[06]\d{4}|7(?:4576|[59]24\d|624[0-4689])\d{5}",
@@ -1739,7 +1739,7 @@ const metadataPatternsByIsoCode = {
     voiceMail: r"3[2-8]\d{9,10}",
   ),
   IsoCode.JE: PhoneMetadataPatterns(
-    nationalPrefixForParsing: r"([0-24-8]\d{5})$|0",
+    nationalPrefixForParsing: r"([0-24-8]\d{5})$|0|180020",
     nationalPrefixTransformRule: r"1534$1",
     general: r"1534\d{6}|(?:[3578]\d|90)\d{8}",
     mobile: r"7(?:(?:(?:50|82)9|937)\d|7(?:00[378]|97\d))\d{5}",

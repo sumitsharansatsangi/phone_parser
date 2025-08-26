@@ -7,10 +7,7 @@ import 'package:phone_numbers_parser/src/regex/match_entirely_extension.dart';
 import '../metadata/models/phone_metadata_formats.dart';
 import '../iso_codes/iso_code.dart';
 
-enum NsnFormat {
-  national,
-  international,
-}
+enum NsnFormat { national, international }
 
 class PhoneNumberFormatter {
   /// format national number for international use
@@ -26,8 +23,9 @@ class PhoneNumberFormatter {
     // are temporarily added to format a complete number.
     final missingDigits = _getMissingDigits(nsn, isoCode);
     final completePhoneNumber = nsn + missingDigits;
-    final formatingRules =
-        MetadataFinder.findMetadataFormatsForIsoCode(isoCode);
+    final formatingRules = MetadataFinder.findMetadataFormatsForIsoCode(
+      isoCode,
+    );
     final formatingRule = _getMatchingFormatRules(
       formatingRules: formatingRules,
       nsn: completePhoneNumber,

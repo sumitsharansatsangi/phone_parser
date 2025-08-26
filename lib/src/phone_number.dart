@@ -27,10 +27,7 @@ class PhoneNumber {
   /// international version of phone number
   String get international => '+$countryCode$nsn';
 
-  const PhoneNumber({
-    required this.isoCode,
-    required this.nsn,
-  });
+  const PhoneNumber({required this.isoCode, required this.nsn});
 
   /// {@template phoneNumber}
   /// Parses a phone number given caller or destination information.
@@ -56,12 +53,11 @@ class PhoneNumber {
     String phoneNumber, {
     IsoCode? callerCountry,
     IsoCode? destinationCountry,
-  }) =>
-      PhoneParser.parse(
-        phoneNumber,
-        callerCountry: callerCountry,
-        destinationCountry: destinationCountry,
-      );
+  }) => PhoneParser.parse(
+    phoneNumber,
+    callerCountry: callerCountry,
+    destinationCountry: destinationCountry,
+  );
 
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
   String formatNsn({IsoCode? isoCode, NsnFormat format = NsnFormat.national}) =>
@@ -186,10 +182,7 @@ class PhoneNumber {
       'PhoneNumber(isoCode: $isoCode, countryCode: $countryCode, nsn: $nsn)';
 
   Map<String, dynamic> toJson() {
-    return {
-      'isoCode': isoCode.name,
-      'nsn': nsn,
-    };
+    return {'isoCode': isoCode.name, 'nsn': nsn};
   }
 
   factory PhoneNumber.fromJson(Map<String, dynamic> map) {

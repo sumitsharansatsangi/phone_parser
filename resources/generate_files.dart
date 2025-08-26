@@ -35,7 +35,8 @@ void main() async {
 }
 
 Future writeCountryCodeMap(Map<String, List<IsoCode>> countryCodeMap) async {
-  var content = '$isoCodeImport'
+  var content =
+      '$isoCodeImport'
       'const countryCodeToIsoCode = {%%};';
   var body = '';
   countryCodeMap.forEach((key, value) {
@@ -43,13 +44,15 @@ Future writeCountryCodeMap(Map<String, List<IsoCode>> countryCodeMap) async {
   });
   content = content.replaceFirst('%%', body);
   print(content);
-  final file = await File('$baseFolder/country_code_to_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/country_code_to_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }
 
 Future writeMetadataMapFile(Map<IsoCode, PhoneMetadata> metadata) async {
-  var content = '$isoCodeImport'
+  var content =
+      '$isoCodeImport'
       'import "../models/phone_metadata.dart";'
       'const metadataByIsoCode = {%%};';
   var body = '';
@@ -57,14 +60,17 @@ Future writeMetadataMapFile(Map<IsoCode, PhoneMetadata> metadata) async {
     body += '$key: ${encodePhoneMetadata(value)},';
   });
   content = content.replaceFirst('%%', body);
-  final file = await File('$baseFolder/metadata_by_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/metadata_by_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }
 
 Future writePatternsMapFile(
-    Map<IsoCode, PhoneMetadataPatterns> metadata) async {
-  var content = '$isoCodeImport'
+  Map<IsoCode, PhoneMetadataPatterns> metadata,
+) async {
+  var content =
+      '$isoCodeImport'
       'import "../models/phone_metadata_patterns.dart";'
       'const metadataPatternsByIsoCode = {%%};';
   var body = '';
@@ -72,13 +78,15 @@ Future writePatternsMapFile(
     body += '$key: ${encodePatterns(value)},';
   });
   content = content.replaceFirst('%%', body);
-  final file = await File('$baseFolder/metadata_patterns_by_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/metadata_patterns_by_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }
 
 Future writeLenghtsMapFile(Map<IsoCode, PhoneMetadataLengths> metadata) async {
-  var content = '$isoCodeImport'
+  var content =
+      '$isoCodeImport'
       'import "../models/phone_metadata_lengths.dart";'
       'const metadataLenghtsByIsoCode = {%%};';
   var body = '';
@@ -86,14 +94,17 @@ Future writeLenghtsMapFile(Map<IsoCode, PhoneMetadataLengths> metadata) async {
     body += '$key: ${encodeLengths(value)},';
   });
   content = content.replaceFirst('%%', body);
-  final file = await File('$baseFolder/metadata_lengths_by_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/metadata_lengths_by_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }
 
 Future writeFormatsMapFile(
-    Map<IsoCode, PhoneMetadataFormatDefinition> metadata) async {
-  var content = '$isoCodeImport'
+  Map<IsoCode, PhoneMetadataFormatDefinition> metadata,
+) async {
+  var content =
+      '$isoCodeImport'
       'import "../models/phone_metadata_formats.dart";'
       'const metadataFormatsByIsoCode = <IsoCode, PhoneMetadataFormatDefinition>{%%};';
   var body = '';
@@ -101,14 +112,17 @@ Future writeFormatsMapFile(
     body += '$key: ${encodeFormatDefinition(value)},';
   });
   content = content.replaceFirst('%%', body);
-  final file = await File('$baseFolder/metadata_formats_by_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/metadata_formats_by_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }
 
 Future writeExamplesMapFile(
-    Map<IsoCode, PhoneMetadataExamples> metadata) async {
-  var content = '$isoCodeImport'
+  Map<IsoCode, PhoneMetadataExamples> metadata,
+) async {
+  var content =
+      '$isoCodeImport'
       'import "../models/phone_metadata_examples.dart";'
       'const metadataExamplesByIsoCode = {%%};';
   var body = '';
@@ -116,7 +130,8 @@ Future writeExamplesMapFile(
     body += '$key: ${encodeExamples(value)},';
   });
   content = content.replaceFirst('%%', body);
-  final file = await File('$baseFolder/metadata_examples_by_iso_code.dart')
-      .create(recursive: true);
+  final file = await File(
+    '$baseFolder/metadata_examples_by_iso_code.dart',
+  ).create(recursive: true);
   await file.writeAsString(content);
 }

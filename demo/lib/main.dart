@@ -36,36 +36,33 @@ class _MyHomePageState extends State<MyHomePage> {
     final phoneNumber = this.phoneNumber;
     return Scaffold(
       body: Center(
-          child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
-        child: Column(
-          children: [
-            const SizedBox(height: 48),
-            Text(
-              'Try a phone number to see the parsing result below',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              initialValue: phoneNumber?.international,
-              decoration: const InputDecoration(
-                label: Text('Phone number'),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            children: [
+              const SizedBox(height: 48),
+              Text(
+                'Try a phone number to see the parsing result below',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-              onChanged: (value) {
-                try {
-                  setState(() => this.phoneNumber = PhoneNumber.parse(value));
-                } catch (e) {
-                  setState(() => this.phoneNumber = null);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: phoneNumber?.international,
+                decoration: const InputDecoration(label: Text('Phone number')),
+                onChanged: (value) {
+                  try {
+                    setState(() => this.phoneNumber = PhoneNumber.parse(value));
+                  } catch (e) {
+                    setState(() => this.phoneNumber = null);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate([
                         ListTile(
                           title: const Text('international'),
                           trailing: phoneNumber != null
@@ -75,15 +72,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         ListTile(
                           title: const Text('Formatted national'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber.formatNsn(
-                                  format: NsnFormat.national))
+                              ? Text(
+                                  phoneNumber.formatNsn(
+                                    format: NsnFormat.national,
+                                  ),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Formatted international'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber.formatNsn(
-                                  format: NsnFormat.international))
+                              ? Text(
+                                  phoneNumber.formatNsn(
+                                    format: NsnFormat.international,
+                                  ),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
@@ -107,92 +110,116 @@ class _MyHomePageState extends State<MyHomePage> {
                         ListTile(
                           title: const Text('Is Valid Mobile'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.mobile)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.mobile)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Fixed Line'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.fixedLine)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.fixedLine)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Voip'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.voip)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.voip)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Toll-Free'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.tollFree)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.tollFree)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Premium Rate'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.premiumRate)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(
+                                        type: PhoneNumberType.premiumRate,
+                                      )
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Shared Cost'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.sharedCost)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.sharedCost)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Personal Number'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.personalNumber)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(
+                                        type: PhoneNumberType.personalNumber,
+                                      )
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid UAN'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.uan)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.uan)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Pager'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.pager)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.pager)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Voice Mail'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber
-                                  .isValid(type: PhoneNumberType.voiceMail)
-                                  .toString())
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.voiceMail)
+                                      .toString(),
+                                )
                               : const Text('-'),
                         ),
-                      ],
+                      ]),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

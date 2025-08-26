@@ -89,7 +89,7 @@ String encodeExamples(PhoneMetadataExamples examples) {
     )''';
 }
 
-String _enc(v) {
+String _enc(dynamic v) {
   if (v is String) return 'r"$v"';
   if (v == null) return 'null';
   return jsonEncode(v);

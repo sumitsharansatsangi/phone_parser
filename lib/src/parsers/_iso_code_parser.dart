@@ -6,8 +6,9 @@ abstract class IsoCodeParser {
     isoCode = isoCode.toUpperCase().trim();
     if (isoCode.length != 2) {
       throw PhoneNumberException(
-          code: Code.invalidIsoCode,
-          description: "incorrect length, found '$isoCode'");
+        code: Code.invalidIsoCode,
+        description: "incorrect length, found '$isoCode'",
+      );
     }
     return isoCode;
   }

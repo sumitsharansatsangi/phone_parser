@@ -45,8 +45,10 @@ abstract class PhoneParser {
         ? MetadataFinder.findMetadataForIsoCode(destinationCountry)
         : null;
 
-    final (exitCode, withoutExitCode) =
-        InternationalPrefixParser.extractExitCode(
+    final (
+      exitCode,
+      withoutExitCode,
+    ) = InternationalPrefixParser.extractExitCode(
       phoneNumber,
       destinationCountryMetadata: destinationMetadata,
       callerCountryMetadata: callerMetadata,
@@ -73,8 +75,10 @@ abstract class PhoneParser {
         withoutCountryCode,
         destinationMetadata,
       );
-      final isValid =
-          Validator.validateWithPattern(destinationMetadata.isoCode, national);
+      final isValid = Validator.validateWithPattern(
+        destinationMetadata.isoCode,
+        national,
+      );
       final isValidWithoutCountryCode = Validator.validateWithPattern(
         destinationMetadata.isoCode,
         newNational,
@@ -122,11 +126,14 @@ abstract class PhoneParser {
       return callerMetadata;
     }
     // if no caller was provided we need to make a best guess given the country code
-    final (countryCode, nsn) =
-        CountryCodeParser.extractCountryCode(phoneWithoutExitCode);
+    final (countryCode, nsn) = CountryCodeParser.extractCountryCode(
+      phoneWithoutExitCode,
+    );
     // multiple countries use the same country code
-    final metadata =
-        MetadataFinder.findMetadataForCountryCode(countryCode, nsn);
+    final metadata = MetadataFinder.findMetadataForCountryCode(
+      countryCode,
+      nsn,
+    );
 
     return metadata ??
         callerMetadata ??

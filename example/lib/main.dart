@@ -5,13 +5,19 @@ void main(List<String> arguments) {
   final inPhone0 = PhoneNumber.parse('+919955059057');
   print(inPhone0);
   // raw caller in france calling another person in france
-  final frPhone1 =
-      PhoneNumber.parse('0 655 5705 76', callerCountry: IsoCode.FR);
+  final frPhone1 = PhoneNumber.parse(
+    '0 655 5705 76',
+    callerCountry: IsoCode.FR,
+  );
   // us calling to france
-  final frPhone2 =
-      PhoneNumber.parse('011 33 655-5705-76', callerCountry: IsoCode.US);
-  final frPhone3 =
-      PhoneNumber.parse('011 33 655 5705 76', destinationCountry: IsoCode.FR);
+  final frPhone2 = PhoneNumber.parse(
+    '011 33 655-5705-76',
+    callerCountry: IsoCode.US,
+  );
+  final frPhone3 = PhoneNumber.parse(
+    '011 33 655 5705 76',
+    destinationCountry: IsoCode.FR,
+  );
   final isAllEqual =
       frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
   print(frPhone1);
@@ -35,8 +41,10 @@ void main(List<String> arguments) {
   // formatting is region dependent
   print('');
   print('Formatting:');
-  final phoneNumber =
-      PhoneNumber.parse('2025550119', destinationCountry: IsoCode.US);
+  final phoneNumber = PhoneNumber.parse(
+    '2025550119',
+    destinationCountry: IsoCode.US,
+  );
   final formattedNsn = phoneNumber.formatNsn();
   print('formatted: $formattedNsn'); // (202) 555-0119
   print('international: ${phoneNumber.international}');

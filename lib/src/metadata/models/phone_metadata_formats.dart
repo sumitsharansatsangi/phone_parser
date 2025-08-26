@@ -19,14 +19,13 @@ class PhoneMetadataFormatListDefinition
     implements PhoneMetadataFormatDefinition {
   final PhoneMetadataFormats formats;
 
-  const PhoneMetadataFormatListDefinition({
-    required this.formats,
-  });
+  const PhoneMetadataFormatListDefinition({required this.formats});
 
   factory PhoneMetadataFormatListDefinition.fromMap(Map<String, dynamic> map) {
     return PhoneMetadataFormatListDefinition(
       formats: List<PhoneMetadataFormat>.from(
-          map['formats']?.map((x) => PhoneMetadataFormat.fromMap(x))),
+        map['formats']?.map((x) => PhoneMetadataFormat.fromMap(x)),
+      ),
     );
   }
 }
@@ -60,8 +59,9 @@ class PhoneMetadataFormat {
     return PhoneMetadataFormat(
       pattern: map['pattern'],
       nationalPrefixFormattingRule: map['nationalPrefixFormattingRule'],
-      leadingDigits:
-          (map['leadingDigits'] as List).map((el) => el as String).toList(),
+      leadingDigits: (map['leadingDigits'] as List)
+          .map((el) => el as String)
+          .toList(),
       format: map['format'],
       intlFormat: map['intlFormat'],
     );

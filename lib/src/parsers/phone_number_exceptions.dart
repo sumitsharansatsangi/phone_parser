@@ -2,10 +2,7 @@ class PhoneNumberException implements Exception {
   final Code code;
   final String? description;
 
-  const PhoneNumberException({
-    required this.code,
-    this.description,
-  });
+  const PhoneNumberException({required this.code, this.description});
 
   @override
   String toString() =>
@@ -30,5 +27,5 @@ enum Code {
   invalidIsoCode,
 
   /// Input has reached the maximum limit
-  inputIsTooLong
+  inputIsTooLong,
 }

@@ -41,16 +41,14 @@ abstract class InternationalPrefixParser {
   }
 
   static (String exitCode, String phoneNumberWithoutExitCode)
-      _removeExitCodeWithMetadata(
-    String phoneNumber,
-    PhoneMetadata metadata,
-  ) {
-    final match =
-        RegExp(metadata.internationalPrefix).matchAsPrefix(phoneNumber);
+  _removeExitCodeWithMetadata(String phoneNumber, PhoneMetadata metadata) {
+    final match = RegExp(
+      metadata.internationalPrefix,
+    ).matchAsPrefix(phoneNumber);
     if (match != null) {
       return (
         phoneNumber.substring(match.start, match.end),
-        phoneNumber.substring(match.end)
+        phoneNumber.substring(match.end),
       );
     }
     // if it does not start with the international prefix from the

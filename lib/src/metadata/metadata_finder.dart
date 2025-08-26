@@ -81,8 +81,9 @@ abstract class MetadataFinder {
     }
     // country code can have multiple metadata because multiple iso code
     // share the same country code.
-    final allMatchingMetadata =
-        isoList.map((iso) => findMetadataForIsoCode(iso)).toList();
+    final allMatchingMetadata = isoList
+        .map((iso) => findMetadataForIsoCode(iso))
+        .toList();
 
     final match = _getMatchUsingPatterns(nationalNumber, allMatchingMetadata);
     return match;
@@ -103,8 +104,10 @@ abstract class MetadataFinder {
     if (potentialFits.length == 1) return potentialFits[0];
     // if the phone number is valid for a metadata return that metadata
     for (var fit in potentialFits) {
-      final isValidForIso =
-          Validator.validateWithPattern(fit.isoCode, nationalNumber);
+      final isValidForIso = Validator.validateWithPattern(
+        fit.isoCode,
+        nationalNumber,
+      );
       if (isValidForIso) {
         return fit;
       }

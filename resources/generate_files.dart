@@ -88,7 +88,7 @@ Future writeLenghtsMapFile(Map<IsoCode, PhoneMetadataLengths> metadata) async {
   var content =
       '$isoCodeImport'
       'import "../models/phone_metadata_lengths.dart";'
-      'const metadataLenghtsByIsoCode = {%%};';
+      'const metadataLengthsByIsoCode = {%%};';
   var body = '';
   metadata.forEach((key, value) {
     body += '$key: ${encodeLengths(value)},';

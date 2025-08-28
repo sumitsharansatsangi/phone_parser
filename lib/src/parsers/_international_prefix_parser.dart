@@ -41,7 +41,7 @@ abstract class InternationalPrefixParser {
   }
 
   static (String exitCode, String phoneNumberWithoutExitCode)
-  _removeExitCodeWithMetadata(String phoneNumber, PhoneMetadata metadata) {
+      _removeExitCodeWithMetadata(String phoneNumber, PhoneMetadata metadata) {
     final match = RegExp(
       metadata.internationalPrefix,
     ).matchAsPrefix(phoneNumber);

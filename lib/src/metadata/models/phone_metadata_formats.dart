@@ -59,9 +59,8 @@ class PhoneMetadataFormat {
     return PhoneMetadataFormat(
       pattern: map['pattern'],
       nationalPrefixFormattingRule: map['nationalPrefixFormattingRule'],
-      leadingDigits: (map['leadingDigits'] as List)
-          .map((el) => el as String)
-          .toList(),
+      leadingDigits:
+          (map['leadingDigits'] as List).map((el) => el as String).toList(),
       format: map['format'],
       intlFormat: map['intlFormat'],
     );

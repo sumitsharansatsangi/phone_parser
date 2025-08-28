@@ -81,9 +81,8 @@ abstract class MetadataFinder {
     }
     // country code can have multiple metadata because multiple iso code
     // share the same country code.
-    final allMatchingMetadata = isoList
-        .map((iso) => findMetadataForIsoCode(iso))
-        .toList();
+    final allMatchingMetadata =
+        isoList.map((iso) => findMetadataForIsoCode(iso)).toList();
 
     final match = _getMatchUsingPatterns(nationalNumber, allMatchingMetadata);
     return match;

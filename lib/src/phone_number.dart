@@ -53,11 +53,12 @@ class PhoneNumber {
     String phoneNumber, {
     IsoCode? callerCountry,
     IsoCode? destinationCountry,
-  }) => PhoneParser.parse(
-    phoneNumber,
-    callerCountry: callerCountry,
-    destinationCountry: destinationCountry,
-  );
+  }) =>
+      PhoneParser.parse(
+        phoneNumber,
+        callerCountry: callerCountry,
+        destinationCountry: destinationCountry,
+      );
 
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
   String formatNsn({IsoCode? isoCode, NsnFormat format = NsnFormat.national}) =>

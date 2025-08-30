@@ -1,7 +1,5 @@
 import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
 
-import '../metadata/models/phone_metadata.dart';
-
 abstract class NationalNumberParser {
   /// extract the national prefix from the phone number if there is one
   /// this method assumes that the national number is in its international
@@ -9,9 +7,9 @@ abstract class NationalNumberParser {
   /// number (except for removing the national prefix). See [transformLocalNsnToInternationalUsingPatterns].
   static (String nationalPrefix, String nsn) extractNationalPrefix(
     String nationalNumber,
-    PhoneMetadata metadata,
+    Map<String, dynamic> metadata,
   ) {
-    final nationalPrefix = metadata.nationalPrefix;
+    final nationalPrefix = metadata["nationalPrefix"];
     if (nationalPrefix == null) return ('', nationalNumber);
     if (nationalNumber.startsWith(nationalPrefix)) {
       return (nationalPrefix, nationalNumber.substring(nationalPrefix.length));
@@ -28,13 +26,13 @@ abstract class NationalNumberParser {
   /// note: uses pattern metadata
   static String transformLocalNsnToInternationalUsingPatterns(
     String nationalNumber,
-    PhoneMetadata metadata,
+    Map<String, dynamic> metadata,
   ) {
     final patterns = MetadataFinder.findMetadataPatternsForIsoCode(
-      metadata.isoCode,
+      metadata["isoCode"],
     );
-    final nationalPrefixForParsing = patterns.nationalPrefixForParsing;
-    final transformRule = patterns.nationalPrefixTransformRule;
+    final nationalPrefixForParsing = patterns["nationalPrefixForParsing"];
+    final transformRule = patterns["nationalPrefixTransformRule"];
 
     if (nationalPrefixForParsing != null) {
       final transformed = applyTransformRules(

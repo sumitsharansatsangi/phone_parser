@@ -3,7 +3,6 @@ import 'package:phone_numbers_parser/src/validation/validator.dart';
 
 import '../../phone_numbers_parser.dart';
 import '../metadata/metadata_finder.dart';
-import '../metadata/models/phone_metadata.dart';
 import '_country_code_parser.dart';
 import '_international_prefix_parser.dart';
 import '_national_number_parser.dart';
@@ -33,8 +32,8 @@ abstract class PhoneParser {
   @internal
   static PhoneNumber parse(
     String phoneNumber, {
-    IsoCode? callerCountry,
-    IsoCode? destinationCountry,
+    String? callerCountry,
+    String? destinationCountry,
   }) {
     phoneNumber = TextParser.normalizePhoneNumber(phoneNumber);
     final callerMetadata = callerCountry != null
@@ -66,7 +65,7 @@ abstract class PhoneParser {
     // otherwise if the phone number starts with a country code, we check
     // if the phone number is valid as is and use that, other wise if it is valid
     // without the country code we remove the country code.
-    final countryCode = destinationMetadata.countryCode;
+    final countryCode = destinationMetadata["countryCode"];
     if (exitCode.isNotEmpty && national.length >= countryCode.length) {
       national = national.substring(countryCode.length);
     } else if (national.startsWith(countryCode)) {
@@ -76,11 +75,11 @@ abstract class PhoneParser {
         destinationMetadata,
       );
       final isValid = Validator.validateWithPattern(
-        destinationMetadata.isoCode,
+        destinationMetadata["isoCode"],
         national,
       );
       final isValidWithoutCountryCode = Validator.validateWithPattern(
-        destinationMetadata.isoCode,
+        destinationMetadata["isoCode"],
         newNational,
       );
       if (!isValid && isValidWithoutCountryCode) {
@@ -108,17 +107,18 @@ abstract class PhoneParser {
     // if it is invalid, we remove the processing of the nsn part
     // this allows for a better behavior in some widget input usages where the
     // text is changed on validity.
-    final parsed = PhoneNumber(isoCode: destinationMetadata.isoCode, nsn: nsn);
+    final parsed =
+        PhoneNumber(isoCode: destinationMetadata["isoCode"], nsn: nsn);
     if (parsed.isValid()) return parsed;
-    return PhoneNumber(isoCode: destinationMetadata.isoCode, nsn: national);
+    return PhoneNumber(isoCode: destinationMetadata["isoCode"], nsn: national);
   }
 
   // find destination of a normalized phone number, which supposedly
   // starts with a country code.
-  static PhoneMetadata _findDestinationMetadata({
+  static Map<String, dynamic> _findDestinationMetadata({
     required String exitCode,
     required String phoneWithoutExitCode,
-    required PhoneMetadata? callerMetadata,
+    required Map<String, dynamic>? callerMetadata,
   }) {
     // if there was not an exit code then we can use the caller metadata
     // since we did not exit
@@ -138,6 +138,6 @@ abstract class PhoneParser {
     return metadata ??
         callerMetadata ??
         // default if nothing was found.
-        MetadataFinder.findMetadataForIsoCode(IsoCode.US);
+        MetadataFinder.findMetadataForIsoCode("IN");
   }
 }

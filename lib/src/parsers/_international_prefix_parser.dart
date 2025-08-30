@@ -1,5 +1,3 @@
-import '../metadata/models/phone_metadata.dart';
-
 abstract class InternationalPrefixParser {
   ///  Removes the exit code from a phone number if present.
   ///
@@ -10,8 +8,8 @@ abstract class InternationalPrefixParser {
   ///  they cover 4/5 of the international prefix
   static (String exitCode, String phoneNumberWithoutExitCode) extractExitCode(
     String phoneNumber, {
-    PhoneMetadata? callerCountryMetadata,
-    PhoneMetadata? destinationCountryMetadata,
+    Map<String, dynamic>? callerCountryMetadata,
+    Map<String, dynamic>? destinationCountryMetadata,
   }) {
     if (phoneNumber.startsWith('+')) {
       return ('+', phoneNumber.substring(1));
@@ -28,7 +26,7 @@ abstract class InternationalPrefixParser {
     // then we can assume it is not an international prefix
     // if no metadata was provided for the destination country
     // then no such check is made that a country code does not follow
-    final countryCode = destinationCountryMetadata?.countryCode ?? '';
+    final countryCode = destinationCountryMetadata?["countryCode"] ?? '';
     if (phoneNumber.startsWith('00$countryCode')) {
       return ('00', phoneNumber.substring(2));
     }
@@ -41,9 +39,10 @@ abstract class InternationalPrefixParser {
   }
 
   static (String exitCode, String phoneNumberWithoutExitCode)
-      _removeExitCodeWithMetadata(String phoneNumber, PhoneMetadata metadata) {
+      _removeExitCodeWithMetadata(
+          String phoneNumber, Map<String, dynamic> metadata) {
     final match = RegExp(
-      metadata.internationalPrefix,
+      metadata["internationalPrefix"],
     ).matchAsPrefix(phoneNumber);
     if (match != null) {
       return (

@@ -1,10 +1,6 @@
 import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
-import 'package:phone_numbers_parser/src/iso_codes/iso_code.dart';
-import 'package:phone_numbers_parser/src/regex/match_entirely_extension.dart';
 
 import '../regex/constants.dart';
-import '../metadata/models/phone_metadata_lengths.dart';
-import '../metadata/models/phone_metadata_patterns.dart';
 import 'phone_number_type.dart';
 
 /// Validates phone numbers
@@ -14,14 +10,13 @@ abstract class Validator {
   /// [nsn] national number without country code,
   /// international prefix, or national prefix
   static bool validateWithPattern(
-    IsoCode isoCode,
+    String isoCode,
     String national, [
     PhoneNumberType? type,
   ]) {
-    final metadata = MetadataFinder.findMetadataForIsoCode(isoCode);
-    final patternMetadatas = MetadataFinder.findMetadataPatternsForIsoCode(
-      metadata.isoCode,
-    );
+    // final metadata = MetadataFinder.findMetadataForIsoCode(isoCode);
+    final patternMetadatas =
+        MetadataFinder.findMetadataPatternsForIsoCode(isoCode);
     // if it's not matching the length it won't match the pattern
     if (!validateWithLength(isoCode, national)) {
       return false;
@@ -33,27 +28,28 @@ abstract class Validator {
       patterns.addAll([
         _getPatterns(patternMetadatas, PhoneNumberType.fixedLine),
         _getPatterns(patternMetadatas, PhoneNumberType.mobile),
-        if (patternMetadatas.voip.isNotEmpty)
+        if (patternMetadatas["voip"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.voip),
-        if (patternMetadatas.tollFree.isNotEmpty)
+        if (patternMetadatas["tollFree"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.tollFree),
-        if (patternMetadatas.premiumRate.isNotEmpty)
+        if (patternMetadatas["premiumRate"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.premiumRate),
-        if (patternMetadatas.sharedCost.isNotEmpty)
+        if (patternMetadatas["sharedCost"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.sharedCost),
-        if (patternMetadatas.personalNumber.isNotEmpty)
+        if (patternMetadatas["personalNumber"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.personalNumber),
-        if (patternMetadatas.uan.isNotEmpty)
+        if (patternMetadatas["uan"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.uan),
-        if (patternMetadatas.pager.isNotEmpty)
+        if (patternMetadatas["pager"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.pager),
-        if (patternMetadatas.voiceMail.isNotEmpty)
+        if (patternMetadatas["voiceMail"].isNotEmpty)
           _getPatterns(patternMetadatas, PhoneNumberType.voiceMail),
       ]);
     } else {
       patterns.add(_getPatterns(patternMetadatas, type));
     }
-    return patterns.any((r) => r.matchEntirely(national) != null);
+    return patterns
+        .any((r) => RegExp('^(?:$r)\$').firstMatch(national) != null);
   }
 
   /// Returns whether or not a national number is viable using length
@@ -61,7 +57,7 @@ abstract class Validator {
   /// [nsn] national number without country code,
   /// international prefix, or national prefix
   static bool validateWithLength(
-    IsoCode isoCode,
+    String isoCode,
     String national, [
     PhoneNumberType? type,
   ]) {
@@ -82,7 +78,7 @@ abstract class Validator {
   }
 
   static Set<int> _getPossibleLengths(
-    PhoneMetadataLengths lengthMetadatas,
+    Map<String, dynamic> lengthMetadatas,
     PhoneNumberType? type,
   ) {
     if (type != null) {
@@ -107,62 +103,77 @@ abstract class Validator {
   }
 
   static List<int> _getLengths(
-    PhoneMetadataLengths lengthMetadatas,
+    Map<String, dynamic> lengthMetadatas,
     PhoneNumberType? type,
   ) {
+    String key;
     switch (type) {
       case PhoneNumberType.mobile:
-        return lengthMetadatas.mobile;
+        key = "mobile";
+        break;
       case PhoneNumberType.fixedLine:
-        return lengthMetadatas.fixedLine;
+        key = "fixedLine";
+        break;
       case PhoneNumberType.voip:
-        return lengthMetadatas.voip;
+        key = "voip";
+        break;
       case PhoneNumberType.tollFree:
-        return lengthMetadatas.tollFree;
+        key = "tollFree";
+        break;
       case PhoneNumberType.premiumRate:
-        return lengthMetadatas.premiumRate;
+        key = "premiumRate";
+        break;
       case PhoneNumberType.sharedCost:
-        return lengthMetadatas.sharedCost;
+        key = "sharedCost";
+        break;
       case PhoneNumberType.personalNumber:
-        return lengthMetadatas.personalNumber;
+        key = "personalNumber";
+        break;
       case PhoneNumberType.uan:
-        return lengthMetadatas.uan;
+        key = "uan";
+        break;
       case PhoneNumberType.pager:
-        return lengthMetadatas.pager;
+        key = "pager";
+        break;
       case PhoneNumberType.voiceMail:
-        return lengthMetadatas.voiceMail;
+        key = "voiceMail";
+        break;
       default:
-        return lengthMetadatas.general;
+        key = "general";
     }
+    return (lengthMetadatas[key] as List<dynamic>?)
+            ?.map((e) => e as int)
+            .toList() ??
+        [];
   }
 
   static String _getPatterns(
-    PhoneMetadataPatterns patternMetadatas,
+    Map<String, dynamic> patternMetadatas,
     PhoneNumberType? type,
   ) {
     switch (type) {
       case PhoneNumberType.mobile:
-        return patternMetadatas.mobile;
+        return patternMetadatas["mobile"];
       case PhoneNumberType.fixedLine:
-        return patternMetadatas.fixedLine;
+        return patternMetadatas["fixedLine"];
       case PhoneNumberType.voip:
-        return patternMetadatas.voip;
+        return patternMetadatas["voip"];
       case PhoneNumberType.tollFree:
-        return patternMetadatas.tollFree;
+        return patternMetadatas["tollFree"];
       case PhoneNumberType.premiumRate:
-        return patternMetadatas.premiumRate;
+        return patternMetadatas["premiumRate"];
       case PhoneNumberType.sharedCost:
-        return patternMetadatas.sharedCost;
+        return patternMetadatas["sharedCost"];
       case PhoneNumberType.personalNumber:
-        return patternMetadatas.personalNumber;
+        return patternMetadatas["personalNumber"];
       case PhoneNumberType.uan:
-        return patternMetadatas.uan;
+        return patternMetadatas["uan"];
       case PhoneNumberType.pager:
-        return patternMetadatas.pager;
+        return patternMetadatas["pager"];
       case PhoneNumberType.voiceMail:
-        return patternMetadatas.voiceMail;
+        return patternMetadatas["voiceMail"];
       default:
-        return patternMetadatas.general;
+        return patternMetadatas["general"];
     }
   }
 }

@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ListTile(
                           title: const Text('Iso code'),
                           trailing: phoneNumber != null
-                              ? Text(phoneNumber.isoCode.name)
+                              ? Text(phoneNumber.isoCode)
                               : const Text('-'),
                         ),
                         ListTile(

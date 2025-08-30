@@ -1,80 +1,132 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:phone_numbers_parser/src/download_file/download_file.dart';
+
 import '../validation/validator.dart';
-import 'generated/country_code_to_iso_code.dart';
-import 'generated/metadata_by_iso_code.dart';
-import 'generated/metadata_formats_by_iso_code.dart';
-import 'generated/metadata_lengths_by_iso_code.dart';
-import 'generated/metadata_patterns_by_iso_code.dart';
-import 'models/phone_metadata.dart';
-import 'models/phone_metadata_formats.dart';
-import 'models/phone_metadata_lengths.dart';
-import 'models/phone_metadata_patterns.dart';
-import '../iso_codes/iso_code.dart';
 import '../parsers/phone_number_exceptions.dart';
 
 /// Helper to find metadata
 abstract class MetadataFinder {
+  static Map<String, dynamic> info = {};
+
+  /// reads the json file of country names which is an array of country information
+  static Future<void> readMetadataJson(String downloadDir) async {
+    // final filePath = '/Users/amitsharan/phone_numbers_parser/resources/data_sources/parsed_phone_number_metadata.json';
+    String? filePath = await downloadMetadata(downloadDir);
+    if (filePath != null) {
+      final jsonString = await File(filePath).readAsString();
+      info = jsonDecode(jsonString);
+    }
+  }
+
+  static Map<String, Map<String, dynamic>> getMetadata() {
+    return info.map(
+      (key, value) => MapEntry(
+        key.toUpperCase(),
+        {
+          "isoCode": value["isoCode"],
+          "countryCode": value['countryCode'],
+          "internationalPrefix": value['internationalPrefix'],
+          "nationalPrefix": value['nationalPrefix'],
+          "leadingDigits": value['leadingDigits'],
+          "isMainCountryForDialCode": value['isMainCountryForDialCode'],
+        },
+      ),
+    );
+  }
+
   /// expects a normalized iso code
-  static PhoneMetadata findMetadataForIsoCode(IsoCode isoCode) {
-    final metadata = metadataByIsoCode[isoCode];
-    if (metadata == null) {
+  static Map<String, dynamic> findMetadataForIsoCode(String isoCode) {
+    final map = info[isoCode];
+    if (map == null) {
       throw PhoneNumberException(
         code: Code.invalidIsoCode,
         description: '$isoCode not found',
       );
     }
-    return metadata;
+    return {
+      "isoCode": map["isoCode"],
+      "countryCode": map['countryCode'],
+      "internationalPrefix": map['internationalPrefix'],
+      "nationalPrefix": map['nationalPrefix'],
+      "leadingDigits": map['leadingDigits'],
+      "isMainCountryForDialCode": map['isMainCountryForDialCode'],
+    };
   }
 
   /// expects a normalized iso code
-  static PhoneMetadataPatterns findMetadataPatternsForIsoCode(IsoCode isoCode) {
-    final metadata = metadataPatternsByIsoCode[isoCode];
-    if (metadata == null) {
+  static Map<String, dynamic> findMetadataPatternsForIsoCode(String isoCode) {
+    final map = info[isoCode]["patterns"];
+    if (map == null) {
       throw PhoneNumberException(
         code: Code.invalidIsoCode,
         description: '$isoCode not found',
       );
     }
-    return metadata;
+    return {
+      "nationalPrefixForParsing": map['nationalPrefixForParsing'],
+      "nationalPrefixTransformRule": map['nationalPrefixTransformRule'],
+      "general": map['general'],
+      "mobile": map['mobile'],
+      "fixedLine": map['fixedLine'],
+      "voip": map['voip'] ?? '',
+      "tollFree": map['tollFree'] ?? '',
+      "premiumRate": map['premiumRate'] ?? '',
+      "sharedCost": map['sharedCost'] ?? '',
+      "personalNumber": map['personalNumber'] ?? '',
+      "uan": map['uan'] ?? '',
+      "pager": map['pager'] ?? '',
+      "voiceMail": map['voiceMail'] ?? '',
+    };
   }
 
-  static PhoneMetadataLengths findMetadataLengthForIsoCode(IsoCode isoCode) {
-    final metadata = metadataLengthsByIsoCode[isoCode];
-    if (metadata == null) {
+  static Map<String, dynamic> findMetadataLengthForIsoCode(String isoCode) {
+    final map = info[isoCode]["lengths"];
+    if (map == null) {
       throw PhoneNumberException(
         code: Code.invalidIsoCode,
         description: 'isoCode "$isoCode" not found',
       );
     }
-    return metadata;
+    return {
+      "general": map['general'] ?? [],
+      "fixedLine": map['fixedLine'] ?? [],
+      "mobile": map['mobile'] ?? [],
+      "voip": map['voip'] ?? [],
+      "tollFree": map['tollFree'] ?? [],
+      "premiumRate": map['premiumRate'] ?? [],
+      "sharedCost": map['sharedCost'] ?? [],
+      "personalNumber": map['personalNumber'] ?? [],
+      "uan": map['uan'] ?? [],
+      "pager": map['pager'] ?? [],
+      "voiceMail": map['voiceMail'] ?? [],
+    };
   }
 
-  static PhoneMetadataFormats findMetadataFormatsForIsoCode(IsoCode isoCode) {
-    var metadata = metadataFormatsByIsoCode[isoCode];
-    if (metadata is PhoneMetadataFormatReferenceDefinition) {
-      metadata = metadataFormatsByIsoCode[metadata.referenceIsoCode];
-    }
-    if (metadata == null) {
+  static List findMetadataFormatsForIsoCode(String isoCode) {
+    final map = info[isoCode]["formats"];
+    if (map == null) {
       throw PhoneNumberException(
         code: Code.invalidIsoCode,
         description: 'isoCode "$isoCode" not found',
       );
     }
-    if (metadata is! PhoneMetadataFormatListDefinition) {
+    // print(map.runtimeType);
+    if (map is! List) {
       throw PhoneNumberException(
         code: Code.invalidIsoCode,
-        description:
-            'isoCode "$isoCode" reference not a format list: $metadata',
+        description: 'isoCode "$isoCode" reference not a format list: $map',
       );
     }
-    return metadata.formats;
+    return map;
   }
 
-  /// expects normalized countryCode
-  static PhoneMetadata? findMetadataForCountryCode(
+  static Map<String, dynamic>? findMetadataForCountryCode(
     String countryCode,
     String nationalNumber,
   ) {
-    final isoList = _getIsoCodesFromCountryCode(countryCode);
+    final isoList = countryCodeToIsoCode(countryCode);
 
     if (isoList.isEmpty) {
       return null;
@@ -88,23 +140,33 @@ abstract class MetadataFinder {
     return match;
   }
 
-  static List<IsoCode> _getIsoCodesFromCountryCode(String countryCode) {
-    final isoCodes = countryCodeToIsoCode[countryCode];
-    if (isoCodes == null) {
-      return [];
+  static List<String> countryCodeToIsoCode(String countryCode) {
+    final allMetadatas = getMetadata();
+    final isoCode = List<String>.empty(growable: true);
+    for (var m in allMetadatas.values) {
+      // final countryCode = m['countryCode'];
+      if (countryCode == m['countryCode']) {
+        final isMainCountry = m['isMainCountryForDialCode'];
+        // we insert the main country at the start of the array so it's easy to find
+        if (isMainCountry == true) {
+          isoCode.insert(0, m['isoCode']);
+        } else {
+          isoCode.add(m['isoCode']);
+        }
+      }
     }
-    return isoCodes;
+    return isoCode;
   }
 
-  static PhoneMetadata _getMatchUsingPatterns(
+  static Map<String, dynamic> _getMatchUsingPatterns(
     String nationalNumber,
-    List<PhoneMetadata> potentialFits,
+    List<Map<String, dynamic>> potentialFits,
   ) {
     if (potentialFits.length == 1) return potentialFits[0];
     // if the phone number is valid for a metadata return that metadata
     for (var fit in potentialFits) {
       final isValidForIso = Validator.validateWithPattern(
-        fit.isoCode,
+        fit["isoCode"] ?? "IN",
         nationalNumber,
       );
       if (isValidForIso) {
@@ -113,7 +175,7 @@ abstract class MetadataFinder {
     }
     // otherwise the phone number starts with leading digits of metadata
     for (var fit in potentialFits) {
-      final leadingDigits = fit.leadingDigits;
+      final leadingDigits = fit["leadingDigits"];
       if (leadingDigits != null && nationalNumber.startsWith(leadingDigits)) {
         return fit;
       }
@@ -121,7 +183,7 @@ abstract class MetadataFinder {
 
     // best guess here
     return potentialFits.firstWhere(
-      (fit) => fit.isMainCountryForDialCode,
+      (fit) => fit["isMainCountryForDialCode"],
       orElse: () => potentialFits[0],
     );
   }

@@ -29,7 +29,7 @@ abstract class CountryCodeParser {
         nsn,
       );
       if (countryMetadata != null) {
-        return (countryMetadata.countryCode, nsn);
+        return (countryMetadata["countryCode"], nsn);
       }
     }
     throw PhoneNumberException(

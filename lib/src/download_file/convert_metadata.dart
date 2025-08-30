@@ -1,35 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'xml_to_json.dart';
-
-void main() async {
-  await fetchXMLFile();
-  await convertXMLToJson();
-  await convertPhoneNumberMetadata();
-}
-
-Future<void> fetchXMLFile() async {
-  final httpClient = HttpClient();
-  final request = await httpClient.getUrl(
-    Uri.parse(
-      'https://raw.githubusercontent.com/google/libphonenumber/master/resources/PhoneNumberMetadata.xml',
-    ),
-  );
-  final response = await request.close();
-  await response.pipe(
-    File('resources/data_sources/PhoneNumberMetadata.xml').openWrite(),
-  );
-  httpClient.close();
-}
+import 'package:phone_numbers_parser/src/download_file/utils.dart';
 
 /// reads the phone number metadata from the ios library phoneNumberKit
 /// and applies some changes to it to make it fit the naming here
-Future convertPhoneNumberMetadata() async {
-  final inputFile =
-      'resources/data_sources/original_phone_number_metadata.json';
-  final outputFile = 'resources/data_sources/parsed_phone_number_metadata.json';
-  final jsonString = await File(inputFile).readAsString();
+Future<String?> convertPhoneNumberMetadata(File file) async {
+  final outputFile = getOutputPath(file.path);
+  final jsonString = await file.readAsString();
   Map<String, dynamic> metadata = jsonDecode(jsonString);
   // remove unnecessary nesting in metadata
   List territories =
@@ -38,8 +16,12 @@ Future convertPhoneNumberMetadata() async {
   territories = territories.where((t) => t['fixedLine'] != null).toList();
   // make the isoCode the key for metadata, and parse metadata
   final converted = {for (var e in territories) e['id']: convertTerritory(e)};
-
-  return File(outputFile).writeAsString(jsonEncode(converted));
+  final output = await File(outputFile).writeAsString(jsonEncode(converted));
+  if (await isFileValid(output)) {
+    await file.delete();
+    return outputFile;
+  }
+  return null;
 }
 
 Map convertTerritory(Map<String, dynamic> territory) {

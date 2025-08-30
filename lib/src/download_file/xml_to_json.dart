@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:phone_numbers_parser/src/download_file/utils.dart';
 import 'package:xml/xml.dart';
 
 extension ReplaceCarrigage on String {
@@ -12,8 +13,8 @@ extension ReplaceCarrigage on String {
   }
 }
 
-Future<void> convertXMLToJson() async {
-  final file = File('resources/data_sources/PhoneNumberMetadata.xml');
+Future<File> convertXMLToJson(String filePath) async {
+  final file = File(filePath);
   final document = XmlDocument.parse(file.readAsStringSync());
   final territoryIterable = document.findAllElements("territory");
   List dataList = [];
@@ -36,22 +37,18 @@ Future<void> convertXMLToJson() async {
         );
       }
       if (territory.getAttribute("leadingDigits") != null) {
-        territoryDict["leadingDigits"] = territory
-            .getAttribute("leadingDigits")!
-            .replaceCarriages();
+        territoryDict["leadingDigits"] =
+            territory.getAttribute("leadingDigits")!.replaceCarriages();
       } else if (territory.getAttribute("leadingdigits") != null) {
-        territoryDict["leadingDigits"] = territory
-            .getAttribute("leadingdigits")!
-            .replaceCarriages();
+        territoryDict["leadingDigits"] =
+            territory.getAttribute("leadingdigits")!.replaceCarriages();
       }
       if (territory.getAttribute("nationalPrefix") != null) {
-        territoryDict["nationalPrefix"] = territory
-            .getAttribute("nationalPrefix")!
-            .replaceCarriages();
+        territoryDict["nationalPrefix"] =
+            territory.getAttribute("nationalPrefix")!.replaceCarriages();
       } else if (territory.getAttribute("nationalprefix") != null) {
-        territoryDict["nationalPrefix"] = territory
-            .getAttribute("nationalprefix")!
-            .replaceCarriages();
+        territoryDict["nationalPrefix"] =
+            territory.getAttribute("nationalprefix")!.replaceCarriages();
       }
       if (territory.getAttribute("nationalPrefixForParsing") != null) {
         territoryDict["nationalPrefixForParsing"] = territory
@@ -135,14 +132,14 @@ Future<void> convertXMLToJson() async {
               }
               if (numberFormat.getAttribute("nationalPrefixFormattingRule") !=
                   null) {
-                numberFormatDict["nationalPrefixFormattingRule"] = numberFormat
-                    .getAttribute("nationalPrefixFormattingRule");
+                numberFormatDict["nationalPrefixFormattingRule"] =
+                    numberFormat.getAttribute("nationalPrefixFormattingRule");
               } else if (numberFormat.getAttribute(
                     "nationalprefixformattingrule",
                   ) !=
                   null) {
-                numberFormatDict["nationalPrefixFormattingRule"] = numberFormat
-                    .getAttribute("nationalprefixformattingrule");
+                numberFormatDict["nationalPrefixFormattingRule"] =
+                    numberFormat.getAttribute("nationalprefixformattingrule");
               }
               if (numberFormat.getAttribute(
                     "nationalPrefixOptionalWhenFormatting",
@@ -150,27 +147,27 @@ Future<void> convertXMLToJson() async {
                   null) {
                 numberFormatDict["nationalPrefixOptionalWhenFormatting"] =
                     numberFormat.getAttribute(
-                      "nationalPrefixOptionalWhenFormatting",
-                    );
+                  "nationalPrefixOptionalWhenFormatting",
+                );
               } else if (numberFormat.getAttribute(
                     "nationalprefixoptionalwhenformatting",
                   ) !=
                   null) {
                 numberFormatDict["nationalPrefixOptionalWhenFormatting"] =
                     numberFormat.getAttribute(
-                      "nationalprefixoptionalwhenformatting",
-                    );
+                  "nationalprefixoptionalwhenformatting",
+                );
               }
               if (numberFormat.getAttribute("carrierCodeFormattingRule") !=
                   null) {
-                numberFormatDict["carrierCodeFormattingRule"] = numberFormat
-                    .getAttribute("carrierCodeFormattingRule");
+                numberFormatDict["carrierCodeFormattingRule"] =
+                    numberFormat.getAttribute("carrierCodeFormattingRule");
               } else if (numberFormat.getAttribute(
                     "carriercodeformattingrule",
                   ) !=
                   null) {
-                numberFormatDict["carrierCodeFormattingRule"] = numberFormat
-                    .getAttribute("carriercodeformattingrule");
+                numberFormatDict["carrierCodeFormattingRule"] =
+                    numberFormat.getAttribute("carriercodeformattingrule");
               }
               Iterable<XmlElement> leadingDigits = numberFormat.findAllElements(
                 "leadingDigits",
@@ -179,10 +176,8 @@ Future<void> convertXMLToJson() async {
                 leadingDigits = numberFormat.findAllElements("leadingdigits");
               }
               if (leadingDigits.length == 1) {
-                numberFormatDict["leadingDigits"] = leadingDigits
-                    .elementAt(0)
-                    .innerText
-                    .replaceCarriages();
+                numberFormatDict["leadingDigits"] =
+                    leadingDigits.elementAt(0).innerText.replaceCarriages();
               } else if (leadingDigits.length > 1) {
                 List<String> leadingDigitList = [];
                 for (final leadingDigit in leadingDigits) {
@@ -211,9 +206,8 @@ Future<void> convertXMLToJson() async {
                 intlFormat = numberFormat.findAllElements("intlformat");
               }
               if (intlFormat.length == 1) {
-                numberFormatDict["intlFormat"] = intlFormat
-                    .elementAt(0)
-                    .innerText;
+                numberFormatDict["intlFormat"] =
+                    intlFormat.elementAt(0).innerText;
               } else if (intlFormat.length > 1) {
                 List<String> intlFormatList = [];
                 for (final i in intlFormat) {
@@ -241,19 +235,16 @@ Future<void> convertXMLToJson() async {
       if (generalDesc.isNotEmpty) {
         Map<String, dynamic> generalDescDict = {};
         if (generalDesc.length == 1) {
-          Iterable<XmlElement> nationalNumberPattern = generalDesc
-              .elementAt(0)
-              .findAllElements("nationalNumberPattern");
+          Iterable<XmlElement> nationalNumberPattern =
+              generalDesc.elementAt(0).findAllElements("nationalNumberPattern");
           if (nationalNumberPattern.isEmpty) {
             nationalNumberPattern = generalDesc
                 .elementAt(0)
                 .findAllElements("nationalnumberpattern");
           }
           if (nationalNumberPattern.isNotEmpty) {
-            generalDescDict["nationalNumberPattern"] = nationalNumberPattern
-                .elementAt(0)
-                .innerText
-                .replaceCarriages();
+            generalDescDict["nationalNumberPattern"] =
+                nationalNumberPattern.elementAt(0).innerText.replaceCarriages();
           }
         }
         territoryDict["generalDesc"] = generalDescDict;
@@ -271,8 +262,8 @@ Future<void> convertXMLToJson() async {
           "voiceMail",
         ];
         for (final key in keyList) {
-          Iterable<XmlElement> noInternationalDiallingIterable = territory
-              .findElements(key);
+          Iterable<XmlElement> noInternationalDiallingIterable =
+              territory.findElements(key);
           if (noInternationalDiallingIterable.isEmpty) {
             noInternationalDiallingIterable = territory.findAllElements(
               key.toLowerCase(),
@@ -281,10 +272,10 @@ Future<void> convertXMLToJson() async {
 
           if (noInternationalDiallingIterable.isNotEmpty) {
             Map<String, dynamic> noInternationalDiallingDict = {};
-            XmlElement noInternationalDialling = noInternationalDiallingIterable
-                .elementAt(0);
-            Iterable<XmlElement> possibleLengths = noInternationalDialling
-                .findAllElements("possibleLengths");
+            XmlElement noInternationalDialling =
+                noInternationalDiallingIterable.elementAt(0);
+            Iterable<XmlElement> possibleLengths =
+                noInternationalDialling.findAllElements("possibleLengths");
             if (possibleLengths.isEmpty) {
               possibleLengths = noInternationalDialling.findAllElements(
                 "possiblelengths",
@@ -312,20 +303,20 @@ Future<void> convertXMLToJson() async {
             }
             Iterable<XmlElement> nationalNumberPatternIterable =
                 noInternationalDialling.findAllElements(
-                  "nationalNumberPattern",
-                );
+              "nationalNumberPattern",
+            );
             if (nationalNumberPatternIterable.isEmpty) {
               nationalNumberPatternIterable = noInternationalDialling
                   .findAllElements("nationalnumberpattern");
             }
             if (nationalNumberPatternIterable.isNotEmpty) {
-              final nationalNumberPattern = nationalNumberPatternIterable
-                  .elementAt(0);
+              final nationalNumberPattern =
+                  nationalNumberPatternIterable.elementAt(0);
               noInternationalDiallingDict["nationalNumberPattern"] =
                   nationalNumberPattern.innerText.replaceCarriages();
             }
-            Iterable<XmlElement> exampleNumberIterable = noInternationalDialling
-                .findAllElements("exampleNumber");
+            Iterable<XmlElement> exampleNumberIterable =
+                noInternationalDialling.findAllElements("exampleNumber");
             if (exampleNumberIterable.isEmpty) {
               exampleNumberIterable = noInternationalDialling.findAllElements(
                 "examplenumber",
@@ -333,9 +324,8 @@ Future<void> convertXMLToJson() async {
             }
             if (exampleNumberIterable.isNotEmpty) {
               final exampleNumber = exampleNumberIterable.elementAt(0);
-              noInternationalDiallingDict["exampleNumber"] = exampleNumber
-                  .innerText
-                  .replaceCarriages();
+              noInternationalDiallingDict["exampleNumber"] =
+                  exampleNumber.innerText.replaceCarriages();
             }
             territoryDict[key] = noInternationalDiallingDict;
           }
@@ -349,7 +339,7 @@ Future<void> convertXMLToJson() async {
   Map<String, dynamic> territory = {"territory": dataList};
   Map<String, dynamic> territories = {"territories": territory};
   Map<String, dynamic> res = {"phoneNumberMetadata": territories};
-  await File(
-    "resources/data_sources/original_phone_number_metadata.json",
+  return await File(
+    changeExtensionToJson(filePath),
   ).writeAsString(jsonEncode(res));
 }

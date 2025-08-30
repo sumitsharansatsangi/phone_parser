@@ -6,8 +6,6 @@ import 'package:phone_numbers_parser/src/validation/validator.dart';
 import 'package:phone_numbers_parser/src/parsers/phone_parser.dart';
 import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
 
-import 'iso_codes/iso_code.dart';
-
 /// represents a phone number
 ///
 /// Use [PhoneNumber.parse] to compute a phone number.
@@ -18,11 +16,11 @@ class PhoneNumber {
   final String nsn;
 
   /// country alpha2 code example: 'FR', 'US', ...
-  final IsoCode isoCode;
+  final String isoCode;
 
   /// territory numerical code that precedes a phone number. Example 33 for france
   String get countryCode =>
-      MetadataFinder.findMetadataForIsoCode(isoCode).countryCode;
+      MetadataFinder.findMetadataForIsoCode(isoCode)["countryCode"];
 
   /// international version of phone number
   String get international => '+$countryCode$nsn';
@@ -51,8 +49,8 @@ class PhoneNumber {
   /// {@endtemplate}
   static PhoneNumber parse(
     String phoneNumber, {
-    IsoCode? callerCountry,
-    IsoCode? destinationCountry,
+    String? callerCountry,
+    String? destinationCountry,
   }) =>
       PhoneParser.parse(
         phoneNumber,
@@ -61,12 +59,8 @@ class PhoneNumber {
       );
 
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
-  String formatNsn({IsoCode? isoCode, NsnFormat format = NsnFormat.national}) =>
+  String formatNsn({String? isoCode, NsnFormat format = NsnFormat.national}) =>
       PhoneNumberFormatter.formatNsn(nsn, isoCode ?? this.isoCode, format);
-
-  @Deprecated('Use [formatNsn] instead')
-  String getFormattedNsn({IsoCode? isoCode}) => formatNsn(isoCode: isoCode);
-
   //
   //  Validation
   //
@@ -183,12 +177,12 @@ class PhoneNumber {
       'PhoneNumber(isoCode: $isoCode, countryCode: $countryCode, nsn: $nsn)';
 
   Map<String, dynamic> toJson() {
-    return {'isoCode': isoCode.name, 'nsn': nsn};
+    return {'isoCode': isoCode, 'nsn': nsn};
   }
 
   factory PhoneNumber.fromJson(Map<String, dynamic> map) {
     return PhoneNumber(
-      isoCode: IsoCode.values.byName(map['isoCode']),
+      isoCode: map['isoCode'],
       nsn: map['nsn'] ?? '',
     );
   }

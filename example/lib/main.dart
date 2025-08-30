@@ -1,22 +1,26 @@
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
+import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
 
-void main(List<String> arguments) {
+//Run from example folder
+// With the command "dart run lib/main.dart"
+void main(List<String> arguments) async {
+  await MetadataFinder.readMetadataJson("./");
   final frPhone0 = PhoneNumber.parse('+33 655 5705 76');
   final inPhone0 = PhoneNumber.parse('+919955059057');
   print(inPhone0);
   // raw caller in france calling another person in france
   final frPhone1 = PhoneNumber.parse(
     '0 655 5705 76',
-    callerCountry: IsoCode.FR,
+    callerCountry: "FR",
   );
   // us calling to france
   final frPhone2 = PhoneNumber.parse(
     '011 33 655-5705-76',
-    callerCountry: IsoCode.US,
+    callerCountry: "US",
   );
   final frPhone3 = PhoneNumber.parse(
     '011 33 655 5705 76',
-    destinationCountry: IsoCode.FR,
+    destinationCountry: "FR",
   );
   final isAllEqual =
       frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
@@ -43,7 +47,7 @@ void main(List<String> arguments) {
   print('Formatting:');
   final phoneNumber = PhoneNumber.parse(
     '2025550119',
-    destinationCountry: IsoCode.US,
+    destinationCountry: "US",
   );
   final formattedNsn = phoneNumber.formatNsn();
   print('formatted: $formattedNsn'); // (202) 555-0119

@@ -1,8 +1,14 @@
-# Phone Numbers Parser
+# Phone Parser
 
-Dart library for parsing phone numbers. Inspired by Google's libphonenumber and PhoneNumberKit for ios.
+Dart library for parsing phone numbers with auto synced with Google libphonenumber. Inspired by Google's libphonenumber and PhoneNumberKit for ios.
+
+## Why?
+
+The libphonenumber library is great, but it is not available for all platforms.
 
 The advantage of this lib instead of libphonenumber is that it instantly supports all platforms (no need for channeling).
+
+This package is fork of [phone_numbers_parser](https://pub.dev/packages/phone_numbers_parser) and is updated to support the autosynced metadata of Google libphonenumber.
 
 ## Features
 
@@ -28,16 +34,17 @@ Use the class `PhoneNumber` as a starting point
 ```dart
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
-void main(List<String> arguments) {
+void main(List<String> arguments) async {
+  await MetadataFinder.readMetadataJson("./");  // You must call this first before using the library
   final frPhone0 = PhoneNumber.parse('+33 655 5705 76');
   // raw caller in france calling another person in france
   final frPhone1 =
-      PhoneNumber.parse('0 655 5705 76', callerCountry: IsoCode.FR);
+      PhoneNumber.parse('0 655 5705 76', callerCountry: "FR");
   // us calling to france
   final frPhone2 =
-      PhoneNumber.parse('011 33 655-5705-76', callerCountry: IsoCode.US);
+      PhoneNumber.parse('011 33 655-5705-76', callerCountry: "US");
   final frPhone3 =
-      PhoneNumber.parse('011 33 655 5705 76', destinationCountry: IsoCode.FR);
+      PhoneNumber.parse('011 33 655 5705 76', destinationCountry: "FR");
   final isAllEqual =
       frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
   print(frPhone1);

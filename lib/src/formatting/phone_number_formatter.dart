@@ -2,10 +2,6 @@ import 'dart:math';
 
 import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
 import 'package:phone_numbers_parser/src/parsers/_national_number_parser.dart';
-import 'package:phone_numbers_parser/src/regex/match_entirely_extension.dart';
-
-import '../metadata/models/phone_metadata_formats.dart';
-import '../iso_codes/iso_code.dart';
 
 enum NsnFormat { national, international }
 
@@ -13,7 +9,7 @@ class PhoneNumberFormatter {
   /// format national number for international use
   static String formatNsn(
     String nsn,
-    IsoCode isoCode, [
+    String isoCode, [
     NsnFormat format = NsnFormat.national,
   ]) {
     if (nsn.isEmpty) {
@@ -26,8 +22,13 @@ class PhoneNumberFormatter {
     final formatingRules = MetadataFinder.findMetadataFormatsForIsoCode(
       isoCode,
     );
+    if (formatingRules.isEmpty) {
+      return nsn;
+    }
+    List<Map<String, dynamic>> fm =
+        (formatingRules).map((e) => e as Map<String, dynamic>).toList();
     final formatingRule = _getMatchingFormatRules(
-      formatingRules: formatingRules,
+      formatingRules: fm,
       nsn: completePhoneNumber,
     );
     // for incomplete phone number
@@ -35,9 +36,9 @@ class PhoneNumberFormatter {
     if (formatingRule == null) {
       return nsn;
     }
-    var transformRule = formatingRule.format;
+    var transformRule = formatingRule["format"];
     // if there is an international format, we use it
-    final intlFormat = formatingRule.intlFormat;
+    final intlFormat = formatingRule["intlFormat"];
     if (format == NsnFormat.international &&
         intlFormat != null &&
         intlFormat != 'NA') {
@@ -46,7 +47,7 @@ class PhoneNumberFormatter {
 
     var formatted = NationalNumberParser.applyTransformRules(
       appliedTo: completePhoneNumber,
-      pattern: formatingRule.pattern,
+      pattern: formatingRule["pattern"],
       transformRule: transformRule,
     );
     formatted = _removeMissingDigits(formatted, missingDigits);
@@ -74,10 +75,11 @@ class PhoneNumberFormatter {
   }
 
   /// returns 9's to have a valid length number
-  static String _getMissingDigits(String nsn, IsoCode isoCode) {
+  static String _getMissingDigits(String nsn, String isoCode) {
     final lengthRule = MetadataFinder.findMetadataLengthForIsoCode(isoCode);
 
-    final minLength = max(lengthRule.fixedLine.first, lengthRule.mobile.first);
+    final minLength =
+        max<int>(lengthRule["fixedLine"].first, lengthRule["mobile"].first);
     // added digits so we match the pattern in case of an incomplete phone number
     var missingDigits = '';
 
@@ -90,8 +92,8 @@ class PhoneNumberFormatter {
   /// gets the matching format rule,
   /// if there is only one formatting rule return it,
   /// else finds the formatting rule that better matches the phone number
-  static PhoneMetadataFormat? _getMatchingFormatRules({
-    required PhoneMetadataFormats formatingRules,
+  static Map<String, dynamic>? _getMatchingFormatRules({
+    required List<Map<String, dynamic>> formatingRules,
     required String nsn,
   }) {
     if (formatingRules.isEmpty) {
@@ -105,8 +107,10 @@ class PhoneNumberFormatter {
     for (var rules in formatingRules) {
       // phonenumberkit seems to be using the last leading digit pattern
       // from the list of pattern so that's what we are going to do here as well
-      final matchLeading = RegExp(rules.leadingDigits.last).matchAsPrefix(nsn);
-      final matchPattern = rules.pattern.matchEntirely(nsn);
+      final matchLeading =
+          RegExp(rules["leadingDigits"].last).matchAsPrefix(nsn);
+      final pattern = rules["pattern"];
+      final matchPattern = RegExp('^(?:$pattern)\$').firstMatch(nsn);
       if (matchLeading != null && matchPattern != null) {
         return rules;
       }

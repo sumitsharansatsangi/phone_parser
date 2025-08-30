@@ -81,7 +81,7 @@ abstract class MetadataFinder {
     };
   }
 
-  static Map<String, dynamic> findMetadataLengthForIsoCode(String isoCode) {
+  static Map<String, List<int>> findMetadataLengthForIsoCode(String isoCode) {
     final map = info[isoCode]["lengths"];
     if (map == null) {
       throw PhoneNumberException(
@@ -90,17 +90,17 @@ abstract class MetadataFinder {
       );
     }
     return {
-      "general": map['general'] ?? [],
-      "fixedLine": map['fixedLine'] ?? [],
-      "mobile": map['mobile'] ?? [],
-      "voip": map['voip'] ?? [],
-      "tollFree": map['tollFree'] ?? [],
-      "premiumRate": map['premiumRate'] ?? [],
-      "sharedCost": map['sharedCost'] ?? [],
-      "personalNumber": map['personalNumber'] ?? [],
-      "uan": map['uan'] ?? [],
-      "pager": map['pager'] ?? [],
-      "voiceMail": map['voiceMail'] ?? [],
+      "general": (map['general']??[]).cast<int>(),
+      "fixedLine": (map['fixedLine']??[]).cast<int>(),
+      "mobile": (map['mobile']??[]).cast<int>(),
+      "voip": (map['voip']??[]).cast<int>(),
+      "tollFree": (map['tollFree']??[]).cast<int>(),
+      "premiumRate": (map['premiumRate']??[]).cast<int>(),
+      "sharedCost": (map['sharedCost']??[]).cast<int>(),
+      "personalNumber": (map['personalNumber']??[]).cast<int>(),
+      "uan": (map['uan']??[]).cast<int>(),
+      "pager": (map['pager']??[]).cast<int>(),
+      "voiceMail": (map['voiceMail']??[]).cast<int>(),
     };
   }
 

@@ -77,15 +77,17 @@ class PhoneNumberFormatter {
   /// returns 9's to have a valid length number
   static String _getMissingDigits(String nsn, String isoCode) {
     final lengthRule = MetadataFinder.findMetadataLengthForIsoCode(isoCode);
-
-    final minLength =
-        max<int>(lengthRule["fixedLine"].first, lengthRule["mobile"].first);
-    // added digits so we match the pattern in case of an incomplete phone number
     var missingDigits = '';
+    if (lengthRule.isNotEmpty && lengthRule["general"]!.isNotEmpty && lengthRule["mobile"]!.isNotEmpty) {
+      final minLength =
+          max<int>(lengthRule["fixedLine"]!.first, lengthRule["mobile"]!.first);
+      // added digits so we match the pattern in case of an incomplete phone number
 
-    while ((nsn + missingDigits).length < minLength) {
-      missingDigits += '9';
+      while ((nsn + missingDigits).length < minLength) {
+        missingDigits += '9';
+      }
     }
+
     return missingDigits;
   }
 

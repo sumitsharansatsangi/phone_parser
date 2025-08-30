@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Fixed unnecessary download issue
+
 ## 0.0.3
 
 - Fixed metadata length parsing

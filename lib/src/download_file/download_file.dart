@@ -19,9 +19,8 @@ Future<String?> downloadMetadata(String dirPath) async {
     // ✅ No file exists → must download
     shouldDownload = true;
   } else {
-    final lastTimestamp = int.tryParse(
-      latestFile.uri.pathSegments.last.split('.').first,
-    );
+    final filename = latestFile.uri.pathSegments.last.split('.').first;
+    final lastTimestamp = int.tryParse(filename.split('_').first);
     final lastDownloadDate =
         DateTime.fromMillisecondsSinceEpoch((lastTimestamp ?? 0) * 1000);
     final diff = now.difference(lastDownloadDate).inDays;

@@ -96,7 +96,6 @@ Map convertTerritory(Map<String, dynamic> territory) {
 
 List<int> getPossibleLengths(Map<String, dynamic> validation) {
   var lengths = validation['possibleLengths'];
-  print(lengths);
   lengths = lengths?['national'];
   return _parsePossibleLengths(lengths);
 }

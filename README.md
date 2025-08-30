@@ -23,10 +23,6 @@ This package is fork of [phone_numbers_parser](https://pub.dev/packages/phone_nu
 
 [demo](https://cedvdb.github.io/phone_numbers_parser/)
 
-## Contributing
-
-[Please read this to upgrade the metadata](CONTRIBUTING.md)
-
 ## Usage
 
 Use the class `PhoneNumber` as a starting point

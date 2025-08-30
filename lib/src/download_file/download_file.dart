@@ -107,7 +107,7 @@ Future<File?> getLatestFile(Directory dir) async {
       final name = entity.uri.pathSegments.last.split('.').first;
       final parts = name.split("_");
       if (parts.isNotEmpty) {
-        final ts = int.tryParse(parts.last);
+        final ts = int.tryParse(parts.first);
         if (ts != null) {
           if (latestTimestamp == null || ts > latestTimestamp) {
             latestTimestamp = ts;

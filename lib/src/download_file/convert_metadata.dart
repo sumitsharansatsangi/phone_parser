@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:phone_numbers_parser/src/download_file/utils.dart';
+import 'package:phone_parser/src/download_file/utils.dart';
 
 /// reads the phone number metadata from the ios library phoneNumberKit
 /// and applies some changes to it to make it fit the naming here

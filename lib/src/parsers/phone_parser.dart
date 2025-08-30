@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
-import 'package:phone_numbers_parser/src/validation/validator.dart';
+import 'package:phone_parser/src/validation/validator.dart';
 
-import '../../phone_numbers_parser.dart';
+import '../../phone_parser.dart';
 import '../metadata/metadata_finder.dart';
 import '_country_code_parser.dart';
 import '_international_prefix_parser.dart';

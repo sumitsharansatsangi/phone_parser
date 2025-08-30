@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:phone_numbers_parser/src/download_file/download_file.dart';
+import 'package:phone_parser/src/download_file/download_file.dart';
 
-import '../validation/validator.dart';
 import '../parsers/phone_number_exceptions.dart';
+import '../validation/validator.dart';
 
 /// Helper to find metadata
 abstract class MetadataFinder {
@@ -12,7 +12,7 @@ abstract class MetadataFinder {
 
   /// reads the json file of country names which is an array of country information
   static Future<void> readMetadataJson(String downloadDir) async {
-    // final filePath = '/Users/amitsharan/phone_numbers_parser/resources/data_sources/parsed_phone_number_metadata.json';
+    // final filePath = '/Users/amitsharan/phone_parser/resources/data_sources/parsed_phone_number_metadata.json';
     String? filePath = await downloadMetadata(downloadDir);
     if (filePath != null) {
       final jsonString = await File(filePath).readAsString();

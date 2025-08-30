@@ -1,4 +1,4 @@
-import '../../phone_numbers_parser.dart';
+import '../../phone_parser.dart';
 
 /// Describes a contiguous range of phone numbers
 class PhoneNumberRange {

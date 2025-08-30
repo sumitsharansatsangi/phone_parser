@@ -1,10 +1,10 @@
-import 'package:phone_numbers_parser/src/formatting/phone_number_formatter.dart';
-import 'package:phone_numbers_parser/src/range/phone_number_range.dart';
-import 'package:phone_numbers_parser/src/validation/phone_number_type.dart';
-import 'package:phone_numbers_parser/src/parsers/_text_parser.dart';
-import 'package:phone_numbers_parser/src/validation/validator.dart';
-import 'package:phone_numbers_parser/src/parsers/phone_parser.dart';
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/formatting/phone_number_formatter.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/parsers/_text_parser.dart';
+import 'package:phone_parser/src/parsers/phone_parser.dart';
+import 'package:phone_parser/src/range/phone_number_range.dart';
+import 'package:phone_parser/src/validation/phone_number_type.dart';
+import 'package:phone_parser/src/validation/validator.dart';
 
 /// represents a phone number
 ///

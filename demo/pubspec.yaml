@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  phone_numbers_parser:
+  phone_parser:
     path: ../
 
 dev_dependencies:

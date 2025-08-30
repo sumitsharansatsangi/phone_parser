@@ -36,7 +36,7 @@ jobs:
         run: flutter pub get
         working-directory: ./demo
       - name: build
-        run: flutter build web --base-href "/phone_numbers_parser/"
+        run: flutter build web --base-href "/phone_parser/"
         working-directory: ./demo
       - name: Setup Pages
         uses: actions/configure-pages@v4

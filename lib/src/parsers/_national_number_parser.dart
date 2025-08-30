@@ -1,4 +1,4 @@
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
 
 abstract class NationalNumberParser {
   /// extract the national prefix from the phone number if there is one

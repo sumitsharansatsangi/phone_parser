@@ -1,5 +1,5 @@
-import 'package:phone_numbers_parser/phone_numbers_parser.dart';
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/phone_parser.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
 
 //Run from example folder
 // With the command "dart run lib/main.dart"

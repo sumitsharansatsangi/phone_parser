@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
-import 'package:phone_numbers_parser/src/parsers/_national_number_parser.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/parsers/_national_number_parser.dart';
 
 enum NsnFormat { national, international }
 

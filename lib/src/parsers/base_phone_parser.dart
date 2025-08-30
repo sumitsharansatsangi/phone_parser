@@ -1,4 +1,5 @@
-import 'package:phone_numbers_parser/phone_numbers_parser.dart';
+import 'package:phone_parser/phone_parser.dart';
+
 import '_text_parser.dart';
 
 /// {@template phoneNumber}

@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "phone_numbers_parser",
+      "name": "phone_parser",
       "request": "launch",
       "type": "dart"
     }

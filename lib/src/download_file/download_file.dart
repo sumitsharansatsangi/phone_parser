@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:phone_numbers_parser/src/download_file/convert_metadata.dart';
-import 'package:phone_numbers_parser/src/download_file/utils.dart';
-import 'package:phone_numbers_parser/src/download_file/xml_to_json.dart';
+
+import 'package:phone_parser/src/download_file/convert_metadata.dart';
+import 'package:phone_parser/src/download_file/utils.dart';
+import 'package:phone_parser/src/download_file/xml_to_json.dart';
 
 Future<String?> downloadMetadata(String dirPath) async {
   final downloadDir = Directory(dirPath);

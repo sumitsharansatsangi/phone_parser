@@ -1,4 +1,4 @@
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
 
 import '../regex/constants.dart';
 import 'phone_number_type.dart';

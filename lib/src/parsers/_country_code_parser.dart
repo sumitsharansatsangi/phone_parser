@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:phone_numbers_parser/src/regex/constants.dart';
-import 'package:phone_numbers_parser/src/parsers/phone_number_exceptions.dart';
-import 'package:phone_numbers_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/metadata/metadata_finder.dart';
+import 'package:phone_parser/src/parsers/phone_number_exceptions.dart';
+import 'package:phone_parser/src/regex/constants.dart';
 
 abstract class CountryCodeParser {
   /// tries to find a country calling code at the start of a phone number

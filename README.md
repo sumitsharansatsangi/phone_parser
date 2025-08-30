@@ -28,7 +28,7 @@ This package is fork of [phone_numbers_parser](https://pub.dev/packages/phone_nu
 Use the class `PhoneNumber` as a starting point
 
 ```dart
-import 'package:phone_numbers_parser/phone_numbers_parser.dart';
+import 'package:phone_parser/phone_parser.dart';
 
 void main(List<String> arguments) async {
   await MetadataFinder.readMetadataJson("./");  // You must call this first before using the library

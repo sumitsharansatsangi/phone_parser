@@ -1,3 +1,7 @@
+## 0.0.6
+
+ - Updated Read Me
+
 ## 0.0.5
 
  - Updated Read Me

@@ -1,8 +1,8 @@
 # 📞 Phone Parser
 
 [![Pub Version](https://img.shields.io/pub/v/phone_parser.svg)](https://pub.dev/packages/phone_parser)
-[![License](https://img.shields.io/github/license/your-repo/phone_parser.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/your-repo/phone_parser.svg?style=social)](https://github.com/your-repo/phone_parser)
+[![License](https://img.shields.io/github/license/sumitsharansatsangi/phone_parser.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/sumitsharansatsangi/phone_parser.svg?style=social)](https://github.com/sumitsharansatsangi/phone_parser)
 
 A Dart library for parsing, validating, and formatting phone numbers — **always in sync with Google’s libphonenumber**.
 
@@ -164,3 +164,7 @@ This project is licensed under the [MIT License](LICENSE).
 * 🔒 Reliable, consistent, always up-to-date
 
 ---
+## 👨‍💻 Author
+
+[![Sumit Kumar](https://github.com/sumitsharansatsangi.png?size=100)](https://github.com/sumitsharansatsangi)  
+**[Sumit Kumar](https://github.com/sumitsharansatsangi)**  

@@ -1,120 +1,166 @@
-# Phone Parser
+# 📞 Phone Parser
 
-Dart library for parsing phone numbers with auto synced with Google libphonenumber. Inspired by Google's libphonenumber and PhoneNumberKit for ios.
+[![Pub Version](https://img.shields.io/pub/v/phone_parser.svg)](https://pub.dev/packages/phone_parser)
+[![License](https://img.shields.io/github/license/your-repo/phone_parser.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/your-repo/phone_parser.svg?style=social)](https://github.com/your-repo/phone_parser)
 
-## Why?
+A Dart library for parsing, validating, and formatting phone numbers — **always in sync with Google’s libphonenumber**.
 
-The libphonenumber library is great, but it is not available for all platforms.
+Unlike traditional phone number libraries where you wait for maintainers to publish updates, **`phone_parser` auto-syncs** with Google’s libphonenumber.
+That means whenever Google ships a new release, your project gets the latest intelligence instantly — no delays, no stale metadata, no headaches.
 
-The advantage of this lib instead of libphonenumber is that it instantly supports all platforms (no need for channeling).
+✨ Whether you’re building a shiny new Flutter app or running a Dart backend server, `phone_parser` is **smart, reliable, and always up-to-date**.
 
-This package is fork of [phone_numbers_parser](https://pub.dev/packages/phone_numbers_parser) and is updated to support the autosynced metadata of Google libphonenumber.
+So you can focus on building while `phone_parser` takes care of keeping things current. 💡
 
-## Features
+---
 
- - Validation: Validate based on type (mobile, fixed line, voip)
- - Formatting: Format phone number for a specific country
- - Phone ranges: find all phone numbers in a range of phone numbers
- - Find phone numbers in a text
- - Supports eastern arabic digits
- - Uses best-in-class metadata from Google's libPhoneNumber project. 
+## 🚀 Why `phone_parser`?
 
-## Demo
+Google’s libphonenumber is fantastic, but:
 
-[demo](https://cedvdb.github.io/phone_numbers_parser/)
+* ❌ It isn’t natively available for all platforms.
+* ❌ You often need channels or bindings to use it.
+* ❌ Updates depend on maintainers.
 
-## Usage
+✅ `phone_parser` solves this:
 
-Use the class `PhoneNumber` as a starting point
+* Works across **all Dart platforms** (Flutter, backend, CLI).
+* Ships with **auto-synced metadata** from Google’s libphonenumber.
+* A fork of [`phone_numbers_parser`](https://pub.dev/packages/phone_numbers_parser) with seamless updates built-in.
+
+---
+
+## ✨ Features
+
+* ✅ **Validation** — Check if a number is valid, by type (mobile, fixed line, VoIP, etc.)
+* ✅ **Formatting** — Format numbers region-specifically
+* ✅ **Phone Ranges** — Expand or compare ranges of numbers
+* ✅ **Number Extraction** — Find phone numbers in plain text
+* ✅ **Eastern Arabic digits support**
+* ✅ **Best-in-class metadata** — Always fresh from Google’s libphonenumber
+
+---
+
+## 🔍 Demo
+
+Try it out: [Live Demo](https://cedvdb.github.io/phone_numbers_parser/)
+
+---
+
+## 📦 Installation
+
+```yaml
+dependencies:
+  phone_parser: ^latest
+```
+
+---
+
+## 🛠 Usage
+
+Start with the `PhoneNumber` class:
 
 ```dart
 import 'package:phone_parser/phone_parser.dart';
 
-void main(List<String> arguments) async {
-  await MetadataFinder.readMetadataJson("./");  // You must call this first before using the library
+void main() async {
+  // Load metadata before parsing numbers
+  await MetadataFinder.readMetadataJson("./");
+
   final frPhone0 = PhoneNumber.parse('+33 655 5705 76');
-  // raw caller in france calling another person in france
-  final frPhone1 =
-      PhoneNumber.parse('0 655 5705 76', callerCountry: "FR");
-  // us calling to france
-  final frPhone2 =
-      PhoneNumber.parse('011 33 655-5705-76', callerCountry: "US");
-  final frPhone3 =
-      PhoneNumber.parse('011 33 655 5705 76', destinationCountry: "FR");
-  final isAllEqual =
-      frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
+
+  // Parsing in different contexts
+  final frPhone1 = PhoneNumber.parse('0 655 5705 76', callerCountry: "FR");
+  final frPhone2 = PhoneNumber.parse('011 33 655-5705-76', callerCountry: "US");
+  final frPhone3 = PhoneNumber.parse('011 33 655 5705 76', destinationCountry: "FR");
+
+  final isAllEqual = frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
   print(frPhone1);
-  print('all raw same: $isAllEqual');
+  print('All representations equal: $isAllEqual');
 
-  // validation
-  final valid = frPhone1.isValid();
-  final validMobile = frPhone1.isValid(type: PhoneNumberType.mobile);
-  final validFixed = frPhone1.isValid(type: PhoneNumberType.fixedLine);
-  print('valid: $valid'); // true
-  print('valid mobile: $validMobile'); // true
-  print('valid fixed line: $validFixed'); // false
+  // ✅ Validation
+  print('valid: ${frPhone1.isValid()}'); 
+  print('valid mobile: ${frPhone1.isValid(type: PhoneNumberType.mobile)}');
+  print('valid fixed line: ${frPhone1.isValid(type: PhoneNumberType.fixedLine)}');
 
-  // utils
-  final text =
-      'hey my phone number is: +33 939 876 218, but you can call me on +33 939 876 999 too';
+  // ✅ Extract numbers from text
+  final text = 'hey my number is: +33 939 876 218, or call me on +33 939 876 999';
   final found = PhoneNumber.findPotentialPhoneNumbers(text);
-  print('found: $found');
+  print('Found: $found');
 }
 ```
 
-# validation
+---
+
+## ✅ Validation
 
 ```dart
-final valid = frPhone1.validate();
-final validMobile = frPhone1.validate(type: PhoneNumberType.mobile);
-final validFixed = frPhone1.validate(type: PhoneNumberType.fixedLine);
-print('valid: $valid'); // true
-print('valid mobile: $validMobile'); // true
-print('valid fixed line: $validFixed'); // false
+final valid = phone.validate();
+final validMobile = phone.validate(type: PhoneNumberType.mobile);
+final validFixed = phone.validate(type: PhoneNumberType.fixedLine);
 ```
 
-### Formatting
+---
 
-Formatting is region specific, so the formats will vary by iso code to accommodate
-for local formats.
+## 🎨 Formatting
+
+Region-specific formatting that respects local conventions:
 
 ```dart
-final phoneNumber =
-    PhoneNumber.parse('2025550119', destinationCountry: IsoCode.US);
-final formattedNsn = phoneNumber.formatNsn();
-print('formatted: $formattedNsn'); // (202) 555-0119
+final phoneNumber = PhoneNumber.parse('2025550119', destinationCountry: IsoCode.US);
+print(phoneNumber.formatNsn()); // (202) 555-0119
 ```
 
-### Range 
+---
+
+## 🔢 Ranges
+
+Work with phone numbers like numbers:
 
 ```dart
-print('Ranges:');
 final first = PhoneNumber.parse('+33 655 5705 00');
 final last = PhoneNumber.parse('+33 655 5705 03');
+
 final range = PhoneNumber.getRange(first, last);
-
 print('Count: ${range.count}');
-print('Expand: ${range.expandRange().join(',')}');
-
-if (first > last) {
-  print("this shouldn't be.");
-}
+print('Expanded: ${range.expandRange()}');
 
 final one = PhoneNumber.parse('+33 655 5705 01');
 final two = PhoneNumber.parse('+33 655 5705 02');
 
-if (one.isAdjacentTo(two)) {
-  print('We are together');
-}
-if (one.isSequentialTo(two)) {
-  print('$two comes after $one');
-}
+if (one.isAdjacentTo(two)) print('We are adjacent');
+if (one.isSequentialTo(two)) print('$two comes after $one');
 
-/// treat the phone no. like an int
 final three = two + 1;
-print('Its still a phone No. $three');
-two - 1 == one;
-final another = one + 2;
-print('$another == $three');
+print('Still a phone number: $three'); // +33 655 5705 03
 ```
 
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! 🎉
+If you’d like to improve `phone_parser`:
+
+1. Fork the repo
+2. Create a new branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'Add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a Pull Request 🚀
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+💡 **Summary:**
+
+* 🌍 Works everywhere (Flutter, CLI, Server)
+* ⚡ Auto-syncs with Google’s libphonenumber
+* 🔒 Reliable, consistent, always up-to-date
+
+---

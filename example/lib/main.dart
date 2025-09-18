@@ -48,6 +48,12 @@ void main(List<String> arguments) async {
     '2025550119',
     destinationCountry: "US",
   );
+  final usPhoneNumber =PhoneNumber.parse('+15551234567');
+  print("US: ${usPhoneNumber.formatNsn()}");
+  print("US: ${usPhoneNumber.international}");
+  print("US: ${usPhoneNumber..nsn}");
+  print('US: ${usPhoneNumber.countryCode}');
+  
   final formattedNsn = phoneNumber.formatNsn();
   print('formatted: $formattedNsn'); // (202) 555-0119
   print('international: ${phoneNumber.international}');

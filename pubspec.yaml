@@ -3,6 +3,14 @@ description: Dart library for parsing phone numbers with auto synced with Google
 version: 0.0.6
 homepage: https://github.com/sumitsharansatsangi/phone_parser
 
+topics:
+  - phone
+  - parser
+  - libphonenumber
+  - google
+  - phone-number-verification
+
+
 environment:
   sdk: ">=3.0.0 <4.0.0"
 

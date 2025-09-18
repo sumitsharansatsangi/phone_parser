@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:phone_parser/src/validation/validator.dart';
 
 import '../../phone_parser.dart';
@@ -28,7 +27,6 @@ import '_text_parser.dart';
 ///
 /// {@endtemplate}
 abstract class PhoneParser {
-  @internal
   static PhoneNumber parse(
     String phoneNumber, {
     String? callerCountry,

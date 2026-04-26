@@ -74,6 +74,8 @@ On every platform you need two things:
 
 ### Recommended directory
 
+The app decides where the downloaded metadata is stored. The safest default is an app-specific, user-scoped directory managed by the OS. That keeps the file inside the app's own storage area, avoids writing into shared public folders, and usually does not require any extra storage permission.
+
 For Flutter apps, prefer [`path_provider`](https://pub.dev/packages/path_provider) and store the metadata in your app support directory:
 
 ```dart
@@ -82,6 +84,14 @@ import 'package:path_provider/path_provider.dart';
 final dir = await getApplicationSupportDirectory();
 await MetadataFinder.readMetadataJson(dir.path);
 ```
+
+That maps to a user-restricted app area on each platform:
+
+* Android: app-specific internal storage
+* iOS: app sandbox `Application Support`
+* macOS: app sandbox or user `Application Support`
+* Windows: user `AppData`
+* Linux: user data directory such as `~/.local/share/<app>`
 
 If you want to force a specific upstream source instead of using the default merged behavior:
 
@@ -94,19 +104,23 @@ await MetadataFinder.readMetadataJson(
 
 For Dart CLI or server apps, `./` or another writable app-managed directory is usually fine.
 
+Avoid public locations such as Downloads, Documents, shared external storage, or install directories unless your app explicitly wants user-visible files. Those locations are more likely to need extra permissions, user prompts, or platform-specific handling.
+
 ### Android
 
 * Add internet access to `android/app/src/main/AndroidManifest.xml`:
   ```xml
   <uses-permission android:name="android.permission.INTERNET" />
   ```
-* Avoid `WRITE_EXTERNAL_STORAGE` unless you intentionally save outside app-specific directories.
+* Save metadata in the app-specific directory returned by `getApplicationSupportDirectory()`.
+* Avoid `WRITE_EXTERNAL_STORAGE` and avoid shared external folders unless you intentionally want the file outside the app sandbox.
 * If you use `path_provider` and write into the app sandbox, no extra storage permission is usually required.
 
 ### iOS
 
 * No extra network entitlement is typically required for standard HTTPS requests.
-* Use an app-managed directory such as `getApplicationSupportDirectory()`.
+* Save metadata in the app sandbox, preferably `getApplicationSupportDirectory()`.
+* This keeps the file in a user-scoped location owned by the app and does not require extra file access permission.
 * If you customize App Transport Security and block standard HTTPS traffic, downloads may fail.
 
 ### macOS
@@ -121,17 +135,20 @@ For Dart CLI or server apps, `./` or another writable app-managed directory is u
   ```text
   SocketException: Connection failed (OS Error: Operation not permitted)
   ```
+* Save metadata in `getApplicationSupportDirectory()` so it stays in a user-scoped app data location and does not need broader filesystem permission.
 * Your app also needs write access to the directory you pass to `MetadataFinder.readMetadataJson(...)`.
 
 ### Windows
 
 * No special entitlement is usually required for outbound HTTPS requests.
-* Make sure the app writes to a user-writable directory, not a protected install location.
+* Save metadata in a user-writable app data directory such as the path from `getApplicationSupportDirectory()`.
+* Avoid writing beside the executable or inside `Program Files`, because those are protected install locations.
 
 ### Linux
 
 * No special package-level permission is usually required for outbound HTTPS requests.
-* Make sure the app writes to a user-writable directory.
+* Save metadata in a user data directory such as the path from `getApplicationSupportDirectory()`.
+* Avoid system directories or package install directories.
 * If you distribute the app through a sandboxed system such as Snap or Flatpak, you may need to grant filesystem or network access in that packaging configuration.
 
 ### Flutter Web

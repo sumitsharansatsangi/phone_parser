@@ -75,11 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     // Use current directory for CLI, or path_provider for Flutter mobile/desktop
                     String dirPath;
                     try {
-                      // Try path_provider for mobile/desktop
-                      // ignore: import_of_legacy_library_into_null_safe
-
                       final dir = await getApplicationSupportDirectory();
                       dirPath = dir.path;
+                      debugPrint('Using application support directory: $dirPath');
                     } catch (_) {
                       dirPath = Directory.current.path;
                     }

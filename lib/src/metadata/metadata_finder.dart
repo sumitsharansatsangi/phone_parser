@@ -10,10 +10,18 @@ import '../validation/validator.dart';
 abstract class MetadataFinder {
   static Map<String, dynamic> info = {};
 
-  /// reads the json file of country names which is an array of country information
-  static Future<void> readMetadataJson(String downloadDir) async {
-    // final filePath = '/Users/amitsharan/phone_parser/resources/data_sources/parsed_phone_number_metadata.json';
-    String? filePath = await downloadMetadata(downloadDir);
+  /// Loads and caches parsed metadata for all supported regions.
+  ///
+  /// By default this tries Google libphonenumber first, then falls back to
+  /// Apple PhoneNumberKit metadata if Google is unavailable.
+  static Future<void> readMetadataJson(
+    String downloadDir, {
+    List<MetadataSource> sources = const [
+      MetadataSource.googleLibphonenumber,
+      MetadataSource.applePhoneNumberKit,
+    ],
+  }) async {
+    String? filePath = await downloadMetadata(downloadDir, sources: sources);
     if (filePath != null) {
       final jsonString = await File(filePath).readAsString();
       info = jsonDecode(jsonString);
@@ -90,17 +98,17 @@ abstract class MetadataFinder {
       );
     }
     return {
-      "general": (map['general']??[]).cast<int>(),
-      "fixedLine": (map['fixedLine']??[]).cast<int>(),
-      "mobile": (map['mobile']??[]).cast<int>(),
-      "voip": (map['voip']??[]).cast<int>(),
-      "tollFree": (map['tollFree']??[]).cast<int>(),
-      "premiumRate": (map['premiumRate']??[]).cast<int>(),
-      "sharedCost": (map['sharedCost']??[]).cast<int>(),
-      "personalNumber": (map['personalNumber']??[]).cast<int>(),
-      "uan": (map['uan']??[]).cast<int>(),
-      "pager": (map['pager']??[]).cast<int>(),
-      "voiceMail": (map['voiceMail']??[]).cast<int>(),
+      "general": (map['general'] ?? []).cast<int>(),
+      "fixedLine": (map['fixedLine'] ?? []).cast<int>(),
+      "mobile": (map['mobile'] ?? []).cast<int>(),
+      "voip": (map['voip'] ?? []).cast<int>(),
+      "tollFree": (map['tollFree'] ?? []).cast<int>(),
+      "premiumRate": (map['premiumRate'] ?? []).cast<int>(),
+      "sharedCost": (map['sharedCost'] ?? []).cast<int>(),
+      "personalNumber": (map['personalNumber'] ?? []).cast<int>(),
+      "uan": (map['uan'] ?? []).cast<int>(),
+      "pager": (map['pager'] ?? []).cast<int>(),
+      "voiceMail": (map['voiceMail'] ?? []).cast<int>(),
     };
   }
 

@@ -4,7 +4,20 @@ import 'package:phone_parser/src/download_file/convert_metadata.dart';
 import 'package:phone_parser/src/download_file/utils.dart';
 import 'package:phone_parser/src/download_file/xml_to_json.dart';
 
-Future<String?> downloadMetadata(String dirPath) async {
+enum MetadataSource {
+  googleLibphonenumber,
+  applePhoneNumberKit,
+}
+
+const _defaultMetadataSources = [
+  MetadataSource.googleLibphonenumber,
+  MetadataSource.applePhoneNumberKit,
+];
+
+Future<String?> downloadMetadata(
+  String dirPath, {
+  List<MetadataSource> sources = _defaultMetadataSources,
+}) async {
   final downloadDir = Directory(dirPath);
 
   if (!await downloadDir.exists()) {
@@ -43,25 +56,62 @@ Future<String?> downloadMetadata(String dirPath) async {
   }
 
   if (shouldDownload) {
-    final filePath = await downloadFile(downloadDir,
-        "https://raw.githubusercontent.com/google/libphonenumber/master/resources/PhoneNumberMetadata.xml");
-    if (filePath != null) {
-      await latestFile?.delete();
-      return filePath;
-    } else {
-      return latestFile?.path;
+    for (final source in sources) {
+      final filePath = await _downloadMetadataFromSource(downloadDir, source);
+      if (filePath != null) {
+        await latestFile?.delete();
+        return filePath;
+      }
     }
+    return latestFile?.path;
   } else {
     print("📂 Latest file is valid and fresh enough.");
     return latestFile?.path;
   }
 }
 
+Future<String?> _downloadMetadataFromSource(
+  Directory dir,
+  MetadataSource source,
+) async {
+  switch (source) {
+    case MetadataSource.googleLibphonenumber:
+      return _downloadAndConvertMetadata(
+        dir,
+        url:
+            "https://raw.githubusercontent.com/google/libphonenumber/master/resources/PhoneNumberMetadata.xml",
+        extension: "xml",
+        sourceName: "Google libphonenumber",
+        converter: (file) async {
+          final jsonFile = await convertXMLToJson(file.path);
+          print("✅ Google metadata converted to json");
+          await file.delete();
+          return convertPhoneNumberMetadata(jsonFile);
+        },
+      );
+    case MetadataSource.applePhoneNumberKit:
+      return _downloadAndConvertMetadata(
+        dir,
+        url:
+            "https://raw.githubusercontent.com/marmelroy/PhoneNumberKit/refs/heads/master/PhoneNumberKit/Resources/PhoneNumberMetadata.json",
+        extension: "json",
+        sourceName: "Apple PhoneNumberKit",
+        converter: convertPhoneNumberMetadata,
+      );
+  }
+}
+
 /// Download and save file with timestamp
-Future<String?> downloadFile(Directory dir, String url) async {
+Future<String?> _downloadAndConvertMetadata(
+  Directory dir, {
+  required String url,
+  required String extension,
+  required String sourceName,
+  required Future<String?> Function(File file) converter,
+}) async {
   final now = DateTime.now();
   final ts = (now.millisecondsSinceEpoch / 1000).floor();
-  final file = File("${dir.path}/${ts}_phone_number_metadata.xml");
+  final file = File("${dir.path}/${ts}_phone_number_metadata.$extension");
 
   final client = HttpClient();
   try {
@@ -70,25 +120,23 @@ Future<String?> downloadFile(Directory dir, String url) async {
 
     if (response.statusCode == 200) {
       await response.pipe(file.openWrite());
-      print("✅ File downloaded and saved as ${file.path}");
+      print("✅ $sourceName metadata downloaded and saved as ${file.path}");
       // Verify immediately after download
       if (await isFileValid(file)) {
-        print("✅ File is valid");
-        final jsonFile = await convertXMLToJson(file.path);
-        print("✅ File converted to json");
-        // Delete the xml file
-        await file.delete();
-        return await convertPhoneNumberMetadata(jsonFile);
+        print("✅ $sourceName metadata file is valid");
+        return await converter(file);
       } else {
-        print("❌ Downloaded file appears corrupted!");
+        print("❌ $sourceName metadata appears corrupted!");
         return null;
       }
     } else {
-      print("❌ Failed to download. Status: ${response.statusCode}");
+      print(
+        "❌ Failed to download $sourceName metadata. Status: ${response.statusCode}",
+      );
       return null;
     }
   } catch (e) {
-    print("⚠️ Download error: $e");
+    print("⚠️ $sourceName download error: $e");
     return null;
   } finally {
     client.close();

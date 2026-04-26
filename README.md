@@ -4,10 +4,10 @@
 [![License](https://img.shields.io/github/license/sumitsharansatsangi/phone_parser.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/sumitsharansatsangi/phone_parser.svg?style=social)](https://github.com/sumitsharansatsangi/phone_parser)
 
-A Dart library for parsing, validating, and formatting phone numbers — **always in sync with Google’s libphonenumber**.
+A Dart library for parsing, validating, and formatting phone numbers — **powered by Google’s libphonenumber and Apple’s PhoneNumberKit metadata**.
 
-Unlike traditional phone number libraries where you wait for maintainers to publish updates, **`phone_parser` auto-syncs** with Google’s libphonenumber.
-That means whenever Google ships a new release, your project gets the latest intelligence instantly — no delays, no stale metadata, no headaches.
+Unlike traditional phone number libraries where you wait for maintainers to publish updates, **`phone_parser` auto-syncs** its metadata directly from upstream sources.
+That means your project can refresh from Google’s libphonenumber and fall back to Apple’s PhoneNumberKit metadata when needed — no delays, no stale metadata, no headaches.
 
 ✨ Whether you’re building a shiny new Flutter app or running a Dart backend server, `phone_parser` is **smart, reliable, and always up-to-date**.
 
@@ -26,7 +26,7 @@ Google’s libphonenumber is fantastic, but:
 ✅ `phone_parser` solves this:
 
 * Works across **all Dart platforms** (Flutter, backend, CLI).
-* Ships with **auto-synced metadata** from Google’s libphonenumber.
+* Ships with **auto-synced metadata** from Google’s libphonenumber with Apple PhoneNumberKit support.
 * A fork of [`phone_numbers_parser`](https://pub.dev/packages/phone_numbers_parser) with seamless updates built-in.
 
 ---
@@ -38,7 +38,7 @@ Google’s libphonenumber is fantastic, but:
 * ✅ **Phone Ranges** — Expand or compare ranges of numbers
 * ✅ **Number Extraction** — Find phone numbers in plain text
 * ✅ **Eastern Arabic digits support**
-* ✅ **Best-in-class metadata** — Always fresh from Google’s libphonenumber
+* ✅ **Best-in-class metadata** — Refreshes from Google’s libphonenumber with Apple PhoneNumberKit fallback
 
 ---
 
@@ -59,7 +59,7 @@ dependencies:
 
 ## 📂 Platform Setup: Download & Save Metadata
 
-`phone_parser` downloads metadata from Google’s libphonenumber and saves it locally before parsing numbers. On every platform you need two things:
+`phone_parser` downloads metadata and saves it locally before parsing numbers. By default it tries Google’s libphonenumber first and falls back to Apple’s PhoneNumberKit metadata. On every platform you need two things:
 
 * Outbound network access to download the metadata
 * Write access to the directory where the metadata file will be stored
@@ -73,6 +73,15 @@ import 'package:path_provider/path_provider.dart';
 
 final dir = await getApplicationSupportDirectory();
 await MetadataFinder.readMetadataJson(dir.path);
+```
+
+If you want to force a specific upstream source:
+
+```dart
+await MetadataFinder.readMetadataJson(
+  dir.path,
+  sources: const [MetadataSource.applePhoneNumberKit],
+);
 ```
 
 For Dart CLI or server apps, `./` or another writable app-managed directory is usually fine.

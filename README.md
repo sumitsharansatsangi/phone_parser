@@ -4,10 +4,10 @@
 [![License](https://img.shields.io/github/license/sumitsharansatsangi/phone_parser.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/sumitsharansatsangi/phone_parser.svg?style=social)](https://github.com/sumitsharansatsangi/phone_parser)
 
-A Dart library for parsing, validating, and formatting phone numbers — **powered by Google’s libphonenumber and Apple’s PhoneNumberKit metadata**.
+A Dart library for parsing, validating, and formatting phone numbers — **powered by merged metadata from Google’s libphonenumber and Apple’s PhoneNumberKit**.
 
 Unlike traditional phone number libraries where you wait for maintainers to publish updates, **`phone_parser` auto-syncs** its metadata directly from upstream sources.
-That means your project can refresh from Google’s libphonenumber and Apple’s PhoneNumberKit metadata together — no delays, no stale metadata, no headaches.
+That means your project can refresh from Google’s libphonenumber and Apple’s PhoneNumberKit together — using Google as the primary source and filling missing values from Apple when available.
 
 ✨ Whether you’re building a shiny new Flutter app or running a Dart backend server, `phone_parser` is **smart, reliable, and always up-to-date**.
 
@@ -38,7 +38,7 @@ Google’s libphonenumber is fantastic, but:
 * ✅ **Phone Ranges** — Expand or compare ranges of numbers
 * ✅ **Number Extraction** — Find phone numbers in plain text
 * ✅ **Eastern Arabic digits support**
-* ✅ **Best-in-class metadata** — Refreshes from Google’s libphonenumber and Apple PhoneNumberKit
+* ✅ **Best-in-class metadata** — Google-first metadata with Apple filling gaps
 
 ---
 
@@ -59,7 +59,15 @@ dependencies:
 
 ## 📂 Platform Setup: Download & Save Metadata
 
-`phone_parser` downloads metadata and saves it locally before parsing numbers. By default it fetches Google’s libphonenumber and Apple’s PhoneNumberKit metadata, then merges them into one parsed file. On every platform you need two things:
+`phone_parser` downloads metadata and saves it locally before parsing numbers. By default it fetches Google’s libphonenumber and Apple’s PhoneNumberKit metadata, then merges them into one parsed file.
+
+Merge behavior:
+
+* Google values are kept when present
+* Apple values are used only when Google is missing a value
+* If Apple is missing a value, the Google value remains
+
+On every platform you need two things:
 
 * Outbound network access to download the metadata
 * Write access to the directory where the metadata file will be stored
@@ -75,7 +83,7 @@ final dir = await getApplicationSupportDirectory();
 await MetadataFinder.readMetadataJson(dir.path);
 ```
 
-If you want to force a specific upstream source:
+If you want to force a specific upstream source instead of using the default merged behavior:
 
 ```dart
 await MetadataFinder.readMetadataJson(

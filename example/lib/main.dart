@@ -1,91 +1,225 @@
+import 'package:flutter/material.dart';
 import 'package:phone_parser/phone_parser.dart';
 
-//Run from example folder
-// With the command "dart run lib/main.dart"
-void main(List<String> arguments) async {
-  await MetadataFinder.readMetadataJson("./");
-  final frPhone0 = PhoneNumber.parse('+33 655 5705 76');
-  final inPhone0 = PhoneNumber.parse('+919955059057');
-  print(inPhone0);
-  // raw caller in france calling another person in france
-  final frPhone1 = PhoneNumber.parse(
-    '0 655 5705 76',
-    callerCountry: "FR",
-  );
-  // us calling to france
-  final frPhone2 = PhoneNumber.parse(
-    '011 33 655-5705-76',
-    callerCountry: "US",
-  );
-  final frPhone3 = PhoneNumber.parse(
-    '011 33 655 5705 76',
-    destinationCountry: "FR",
-  );
-  final isAllEqual =
-      frPhone0 == frPhone1 && frPhone0 == frPhone2 && frPhone0 == frPhone3;
-  print(frPhone1);
-  print('all raw same: $isAllEqual');
+void main() {
+  runApp(const MyApp());
+}
 
-  // validation
-  final valid = frPhone1.isValid();
-  final validMobile = frPhone1.isValid(type: PhoneNumberType.mobile);
-  final validFixed = frPhone1.isValid(type: PhoneNumberType.fixedLine);
-  print('valid: $valid'); // true
-  print('valid mobile: $validMobile'); // true
-  print('valid fixed line: $validFixed'); // false
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  // utils
-  final text =
-      'hey my phone number is: +33 939 876 218, but you can call me on +33 939 876 999 too';
-  final found = PhoneNumber.findPotentialPhoneNumbers(text);
-  print('found: $found');
-
-  // Formatting
-  // formatting is region dependent
-  print('');
-  print('Formatting:');
-  final phoneNumber = PhoneNumber.parse(
-    '2025550119',
-    destinationCountry: "US",
-  );
-  final usPhoneNumber =PhoneNumber.parse('+15551234567');
-  print("US: ${usPhoneNumber.formatNsn()}");
-  print("US: ${usPhoneNumber.international}");
-  print("US: ${usPhoneNumber..nsn}");
-  print('US: ${usPhoneNumber.countryCode}');
-  
-  final formattedNsn = phoneNumber.formatNsn();
-  print('formatted: $formattedNsn'); // (202) 555-0119
-  print('international: ${phoneNumber.international}');
-  // Ranges
-  print('');
-  print('Ranges:');
-  final first = PhoneNumber.parse('+33 655 5705 00');
-  final last = PhoneNumber.parse('+33 655 5705 03');
-  print(first.isValid());
-  final range = PhoneNumber.getRange(first, last);
-  print('nsn: ${first.nsn}');
-  print('Count: ${range.count}');
-  print('Expand: ${range.expandRange().join(',')}');
-
-  if (first > last) {
-    print("this shouldn't be.");
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const MyHomePage(),
+    );
   }
+}
 
-  final one = PhoneNumber.parse('+33 655 5705 01');
-  final two = PhoneNumber.parse('+33 655 5705 02');
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
 
-  if (one.isAdjacentTo(two)) {
-    print('We are together');
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  PhoneNumber? phoneNumber = PhoneNumber.parse('+16505551234');
+
+  @override
+  Widget build(BuildContext context) {
+    final phoneNumber = this.phoneNumber;
+    return Scaffold(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            children: [
+              const SizedBox(height: 48),
+              Text(
+                'Try a phone number to see the parsing result below',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: phoneNumber?.international,
+                decoration: const InputDecoration(label: Text('Phone number')),
+                onChanged: (value) {
+                  try {
+                    setState(() => this.phoneNumber = PhoneNumber.parse(value));
+                  } catch (e) {
+                    setState(() => this.phoneNumber = null);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        ListTile(
+                          title: const Text('international'),
+                          trailing: phoneNumber != null
+                              ? Text(phoneNumber.international)
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Formatted national'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber.formatNsn(
+                                    format: NsnFormat.national,
+                                  ),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Formatted international'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber.formatNsn(
+                                    format: NsnFormat.international,
+                                  ),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Iso code'),
+                          trailing: phoneNumber != null
+                              ? Text(phoneNumber.isoCode)
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Country Dial Code'),
+                          trailing: phoneNumber != null
+                              ? Text(phoneNumber.countryCode)
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid'),
+                          trailing: phoneNumber != null
+                              ? Text(phoneNumber.isValid().toString())
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Mobile'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.mobile)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Fixed Line'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.fixedLine)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Voip'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.voip)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Toll-Free'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.tollFree)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Premium Rate'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(
+                                        type: PhoneNumberType.premiumRate,
+                                      )
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Shared Cost'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.sharedCost)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Personal Number'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(
+                                        type: PhoneNumberType.personalNumber,
+                                      )
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid UAN'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.uan)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Pager'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.pager)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                        ListTile(
+                          title: const Text('Is Valid Voice Mail'),
+                          trailing: phoneNumber != null
+                              ? Text(
+                                  phoneNumber
+                                      .isValid(type: PhoneNumberType.voiceMail)
+                                      .toString(),
+                                )
+                              : const Text('-'),
+                        ),
+                      ]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-  if (one.isSequentialTo(two)) {
-    print('$two comes after $one');
-  }
-
-  /// treat the phone no. like an int
-  final three = two + 1;
-  print('Its still a phone No. $three');
-  two - 1 == one;
-  final another = one + 2;
-  print('$another == $three');
 }

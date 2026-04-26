@@ -57,6 +57,45 @@ dependencies:
 
 ---
 
+## 📂 Platform Permissions: Download & Save Metadata
+
+`phone_parser` auto-downloads and saves the latest phone number metadata from Google’s libphonenumber. Depending on your platform, you may need to grant permissions or configure your app to allow file downloads and writes:
+
+### Flutter (Android & iOS)
+
+- **Android:**
+  - Add the following permission to your `android/app/src/main/AndroidManifest.xml`:
+    ```xml
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    ```
+    For Android 10+ (API 29+), use app-specific storage or [request legacy storage](https://developer.android.com/training/data-storage/use-cases).
+- **iOS:**
+  - No extra permissions are needed for app sandbox. Make sure you use app directories (e.g., via `path_provider`).
+
+### Flutter (Web)
+
+- Web apps **cannot download or save files to disk** due to browser sandboxing. You must bundle the metadata JSON with your app or fetch it from a server endpoint.
+
+### Dart CLI / Server
+
+- No special permissions are needed. The process must have write access to the target directory (e.g., `./`).
+
+### Desktop (macOS, Windows, Linux)
+
+- No extra permissions are needed, but the app must have write access to the chosen directory.
+
+**Tip:** For cross-platform compatibility, use [`path_provider`](https://pub.dev/packages/path_provider) to get a writable directory:
+
+```dart
+import 'package:path_provider/path_provider.dart';
+final dir = await getApplicationSupportDirectory();
+await MetadataFinder.readMetadataJson(dir.path);
+```
+This ensures your app can always download and save metadata safely on mobile and desktop platforms.
+
+---
+
 ## 🛠 Usage
 
 Start with the `PhoneNumber` class:

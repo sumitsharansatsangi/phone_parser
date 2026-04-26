@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:phone_parser/phone_parser.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,11 +32,30 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  PhoneNumber? phoneNumber = PhoneNumber.parse('+16505551234');
+  PhoneNumber? phoneNumber;
+  String? downloadStatus;
+  String? parseError;
+
+  bool get _hasMetadata => MetadataFinder.info.isNotEmpty;
+
+  PhoneNumber? _parsePhoneNumberInput(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) return null;
+    if (!_hasMetadata) {
+      throw const PhoneNumberException(
+        code: Code.notFound,
+        description: 'Download metadata before parsing phone numbers',
+      );
+    }
+    if (normalized.startsWith('+')) {
+      return PhoneNumber.parse(normalized);
+    }
+    return PhoneNumber.parse(normalized, destinationCountry: 'US');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final phoneNumber = this.phoneNumber;
+    final currentPhoneNumber = phoneNumber;
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -46,14 +68,62 @@ class _MyHomePageState extends State<MyHomePage> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () async {
+                  setState(() => downloadStatus = 'Downloading...');
+                  try {
+                    // Use current directory for CLI, or path_provider for Flutter mobile/desktop
+                    String dirPath;
+                    try {
+                      // Try path_provider for mobile/desktop
+                      // ignore: import_of_legacy_library_into_null_safe
+
+                      final dir = await getApplicationSupportDirectory();
+                      dirPath = dir.path;
+                    } catch (_) {
+                      dirPath = Directory.current.path;
+                    }
+                    await MetadataFinder.readMetadataJson(dirPath);
+                    setState(() {
+                      downloadStatus = '✅ Download and save succeeded!';
+                      parseError = null;
+                      phoneNumber = _parsePhoneNumberInput('+16505551234');
+                    });
+                  } catch (e) {
+                    setState(() => downloadStatus = '❌ Download failed: $e');
+                  }
+                },
+                child: const Text('Test Metadata Download'),
+              ),
+              if (downloadStatus != null) ...[
+                const SizedBox(height: 8),
+                Text(downloadStatus!),
+              ],
+              const SizedBox(height: 12),
               TextFormField(
-                initialValue: phoneNumber?.international,
-                decoration: const InputDecoration(label: Text('Phone number')),
+                initialValue: currentPhoneNumber?.international,
+                decoration: InputDecoration(
+                  label: const Text('Phone number'),
+                  hintText: '+16505551234 or 6505551234',
+                  errorText: parseError,
+                ),
                 onChanged: (value) {
                   try {
-                    setState(() => this.phoneNumber = PhoneNumber.parse(value));
-                  } catch (e) {
-                    setState(() => this.phoneNumber = null);
+                    final parsed = _parsePhoneNumberInput(value);
+                    setState(() {
+                      phoneNumber = parsed;
+                      parseError = null;
+                    });
+                  } on PhoneNumberException catch (e) {
+                    setState(() {
+                      phoneNumber = null;
+                      parseError = e.description ?? e.code.toString();
+                    });
+                  } catch (_) {
+                    setState(() {
+                      phoneNumber = null;
+                      parseError = 'Unable to parse phone number';
+                    });
                   }
                 },
               ),
@@ -65,15 +135,19 @@ class _MyHomePageState extends State<MyHomePage> {
                       delegate: SliverChildListDelegate([
                         ListTile(
                           title: const Text('international'),
-                          trailing: phoneNumber != null
-                              ? Text(phoneNumber.international)
-                              : const Text('-'),
+                          trailing: currentPhoneNumber != null
+                              ? Text(currentPhoneNumber.international)
+                              : Text(
+                                  _hasMetadata
+                                      ? '-'
+                                      : 'Download metadata to begin',
+                                ),
                         ),
                         ListTile(
                           title: const Text('Formatted national'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber.formatNsn(
+                                  currentPhoneNumber.formatNsn(
                                     format: NsnFormat.national,
                                   ),
                                 )
@@ -81,9 +155,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Formatted international'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber.formatNsn(
+                                  currentPhoneNumber.formatNsn(
                                     format: NsnFormat.international,
                                   ),
                                 )
@@ -91,27 +165,27 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Iso code'),
-                          trailing: phoneNumber != null
-                              ? Text(phoneNumber.isoCode)
+                          trailing: currentPhoneNumber != null
+                              ? Text(currentPhoneNumber.isoCode)
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Country Dial Code'),
-                          trailing: phoneNumber != null
-                              ? Text(phoneNumber.countryCode)
+                          trailing: currentPhoneNumber != null
+                              ? Text(currentPhoneNumber.countryCode)
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid'),
-                          trailing: phoneNumber != null
-                              ? Text(phoneNumber.isValid().toString())
+                          trailing: currentPhoneNumber != null
+                              ? Text(currentPhoneNumber.isValid().toString())
                               : const Text('-'),
                         ),
                         ListTile(
                           title: const Text('Is Valid Mobile'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.mobile)
                                       .toString(),
                                 )
@@ -119,9 +193,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Fixed Line'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.fixedLine)
                                       .toString(),
                                 )
@@ -129,9 +203,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Voip'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.voip)
                                       .toString(),
                                 )
@@ -139,9 +213,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Toll-Free'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.tollFree)
                                       .toString(),
                                 )
@@ -149,9 +223,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Premium Rate'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(
                                         type: PhoneNumberType.premiumRate,
                                       )
@@ -161,9 +235,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Shared Cost'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.sharedCost)
                                       .toString(),
                                 )
@@ -171,9 +245,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Personal Number'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(
                                         type: PhoneNumberType.personalNumber,
                                       )
@@ -183,9 +257,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid UAN'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.uan)
                                       .toString(),
                                 )
@@ -193,9 +267,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Pager'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.pager)
                                       .toString(),
                                 )
@@ -203,9 +277,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         ListTile(
                           title: const Text('Is Valid Voice Mail'),
-                          trailing: phoneNumber != null
+                          trailing: currentPhoneNumber != null
                               ? Text(
-                                  phoneNumber
+                                  currentPhoneNumber
                                       .isValid(type: PhoneNumberType.voiceMail)
                                       .toString(),
                                 )

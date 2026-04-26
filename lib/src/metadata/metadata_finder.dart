@@ -12,8 +12,8 @@ abstract class MetadataFinder {
 
   /// Loads and caches parsed metadata for all supported regions.
   ///
-  /// By default this tries Google libphonenumber first, then falls back to
-  /// Apple PhoneNumberKit metadata if Google is unavailable.
+  /// By default this downloads metadata from Google libphonenumber and Apple
+  /// PhoneNumberKit, then merges them into one parsed dataset.
   static Future<void> readMetadataJson(
     String downloadDir, {
     List<MetadataSource> sources = const [

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:phone_parser/src/download_file/convert_metadata.dart';
@@ -13,6 +14,8 @@ const _defaultMetadataSources = [
   MetadataSource.googleLibphonenumber,
   MetadataSource.applePhoneNumberKit,
 ];
+
+const _mergedMetadataFilename = "phone_number_metadata_parsed.json";
 
 Future<String?> downloadMetadata(
   String dirPath, {
@@ -56,12 +59,10 @@ Future<String?> downloadMetadata(
   }
 
   if (shouldDownload) {
-    for (final source in sources) {
-      final filePath = await _downloadMetadataFromSource(downloadDir, source);
-      if (filePath != null) {
-        await latestFile?.delete();
-        return filePath;
-      }
+    final mergedPath = await _downloadAndMergeMetadata(downloadDir, sources);
+    if (mergedPath != null) {
+      await latestFile?.delete();
+      return mergedPath;
     }
     return latestFile?.path;
   } else {
@@ -70,10 +71,40 @@ Future<String?> downloadMetadata(
   }
 }
 
-Future<String?> _downloadMetadataFromSource(
+Future<String?> _downloadAndMergeMetadata(
   Directory dir,
-  MetadataSource source,
+  List<MetadataSource> sources,
 ) async {
+  final mergedMetadata = <String, dynamic>{};
+
+  for (final source in sources) {
+    final metadata = await _downloadMetadataFromSource(dir, source: source);
+    if (metadata == null) {
+      print(
+          "⚠️ Failed to refresh merged metadata because $source could not be loaded.");
+      return null;
+    }
+    _mergeMetadata(mergedMetadata, metadata);
+  }
+
+  final now = DateTime.now();
+  final ts = (now.millisecondsSinceEpoch / 1000).floor();
+  final output = File("${dir.path}/${ts}_$_mergedMetadataFilename");
+  await output.writeAsString(jsonEncode(mergedMetadata));
+
+  if (await isFileValid(output)) {
+    print("✅ Merged metadata saved as ${output.path}");
+    return output.path;
+  }
+
+  print("❌ Merged metadata file appears corrupted!");
+  return null;
+}
+
+Future<Map<String, dynamic>?> _downloadMetadataFromSource(
+  Directory dir, {
+  required MetadataSource source,
+}) async {
   switch (source) {
     case MetadataSource.googleLibphonenumber:
       return _downloadAndConvertMetadata(
@@ -82,6 +113,7 @@ Future<String?> _downloadMetadataFromSource(
             "https://raw.githubusercontent.com/google/libphonenumber/master/resources/PhoneNumberMetadata.xml",
         extension: "xml",
         sourceName: "Google libphonenumber",
+        fileStem: "google_phone_number_metadata",
         converter: (file) async {
           final jsonFile = await convertXMLToJson(file.path);
           print("✅ Google metadata converted to json");
@@ -96,23 +128,24 @@ Future<String?> _downloadMetadataFromSource(
             "https://raw.githubusercontent.com/marmelroy/PhoneNumberKit/refs/heads/master/PhoneNumberKit/Resources/PhoneNumberMetadata.json",
         extension: "json",
         sourceName: "Apple PhoneNumberKit",
+        fileStem: "apple_phone_number_metadata",
         converter: convertPhoneNumberMetadata,
       );
   }
 }
 
-/// Download and save file with timestamp
-Future<String?> _downloadAndConvertMetadata(
+/// Download, convert, and load one metadata source.
+Future<Map<String, dynamic>?> _downloadAndConvertMetadata(
   Directory dir, {
   required String url,
   required String extension,
   required String sourceName,
+  required String fileStem,
   required Future<String?> Function(File file) converter,
 }) async {
   final now = DateTime.now();
   final ts = (now.millisecondsSinceEpoch / 1000).floor();
-  final file = File("${dir.path}/${ts}_phone_number_metadata.$extension");
-
+  final file = File("${dir.path}/${ts}_$fileStem.$extension");
   final client = HttpClient();
   try {
     final request = await client.getUrl(Uri.parse(url));
@@ -124,7 +157,16 @@ Future<String?> _downloadAndConvertMetadata(
       // Verify immediately after download
       if (await isFileValid(file)) {
         print("✅ $sourceName metadata file is valid");
-        return await converter(file);
+        final parsedFilePath = await converter(file);
+        if (parsedFilePath == null) {
+          return null;
+        }
+
+        final parsedFile = File(parsedFilePath);
+        final jsonString = await parsedFile.readAsString();
+        final metadata = jsonDecode(jsonString) as Map<String, dynamic>;
+        await parsedFile.delete();
+        return metadata;
       } else {
         print("❌ $sourceName metadata appears corrupted!");
         return null;
@@ -141,6 +183,50 @@ Future<String?> _downloadAndConvertMetadata(
   } finally {
     client.close();
   }
+}
+
+void _mergeMetadata(
+  Map<String, dynamic> base,
+  Map<String, dynamic> incoming,
+) {
+  incoming.forEach((isoCode, value) {
+    final incomingTerritory = Map<String, dynamic>.from(value as Map);
+    final currentValue = base[isoCode];
+
+    if (currentValue is Map<String, dynamic>) {
+      base[isoCode] = _deepMergeMaps(currentValue, incomingTerritory);
+    } else if (currentValue is Map) {
+      base[isoCode] = _deepMergeMaps(
+        Map<String, dynamic>.from(currentValue),
+        incomingTerritory,
+      );
+    } else {
+      base[isoCode] = incomingTerritory;
+    }
+  });
+}
+
+Map<String, dynamic> _deepMergeMaps(
+  Map<String, dynamic> base,
+  Map<String, dynamic> incoming,
+) {
+  final merged = Map<String, dynamic>.from(base);
+
+  incoming.forEach((key, value) {
+    final currentValue = merged[key];
+    if (currentValue is Map && value is Map) {
+      merged[key] = _deepMergeMaps(
+        Map<String, dynamic>.from(currentValue),
+        Map<String, dynamic>.from(value),
+      );
+    } else if (!merged.containsKey(key) || currentValue == null) {
+      merged[key] = value;
+    } else if (value == null) {
+      merged.putIfAbsent(key, () => value);
+    }
+  });
+
+  return merged;
 }
 
 /// Find latest file by timestamp in name

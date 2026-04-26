@@ -57,42 +57,82 @@ dependencies:
 
 ---
 
-## 📂 Platform Permissions: Download & Save Metadata
+## 📂 Platform Setup: Download & Save Metadata
 
-`phone_parser` auto-downloads and saves the latest phone number metadata from Google’s libphonenumber. Depending on your platform, you may need to grant permissions or configure your app to allow file downloads and writes:
+`phone_parser` downloads metadata from Google’s libphonenumber and saves it locally before parsing numbers. On every platform you need two things:
 
-### Flutter (Android & iOS)
+* Outbound network access to download the metadata
+* Write access to the directory where the metadata file will be stored
 
-- **Android:**
-  - Add the following permission to your `android/app/src/main/AndroidManifest.xml`:
-    ```xml
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    ```
-    For Android 10+ (API 29+), use app-specific storage or [request legacy storage](https://developer.android.com/training/data-storage/use-cases).
-- **iOS:**
-  - No extra permissions are needed for app sandbox. Make sure you use app directories (e.g., via `path_provider`).
+### Recommended directory
 
-### Flutter (Web)
-
-- Web apps **cannot download or save files to disk** due to browser sandboxing. You must bundle the metadata JSON with your app or fetch it from a server endpoint.
-
-### Dart CLI / Server
-
-- No special permissions are needed. The process must have write access to the target directory (e.g., `./`).
-
-### Desktop (macOS, Windows, Linux)
-
-- No extra permissions are needed, but the app must have write access to the chosen directory.
-
-**Tip:** For cross-platform compatibility, use [`path_provider`](https://pub.dev/packages/path_provider) to get a writable directory:
+For Flutter apps, prefer [`path_provider`](https://pub.dev/packages/path_provider) and store the metadata in your app support directory:
 
 ```dart
 import 'package:path_provider/path_provider.dart';
+
 final dir = await getApplicationSupportDirectory();
 await MetadataFinder.readMetadataJson(dir.path);
 ```
-This ensures your app can always download and save metadata safely on mobile and desktop platforms.
+
+For Dart CLI or server apps, `./` or another writable app-managed directory is usually fine.
+
+### Android
+
+* Add internet access to `android/app/src/main/AndroidManifest.xml`:
+  ```xml
+  <uses-permission android:name="android.permission.INTERNET" />
+  ```
+* Avoid `WRITE_EXTERNAL_STORAGE` unless you intentionally save outside app-specific directories.
+* If you use `path_provider` and write into the app sandbox, no extra storage permission is usually required.
+
+### iOS
+
+* No extra network entitlement is typically required for standard HTTPS requests.
+* Use an app-managed directory such as `getApplicationSupportDirectory()`.
+* If you customize App Transport Security and block standard HTTPS traffic, downloads may fail.
+
+### macOS
+
+* If your Flutter macOS app uses the app sandbox, you must allow outbound network access.
+* Add this entitlement to both `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
+  ```xml
+  <key>com.apple.security.network.client</key>
+  <true/>
+  ```
+* Without it, metadata download can fail with errors like:
+  ```text
+  SocketException: Connection failed (OS Error: Operation not permitted)
+  ```
+* Your app also needs write access to the directory you pass to `MetadataFinder.readMetadataJson(...)`.
+
+### Windows
+
+* No special entitlement is usually required for outbound HTTPS requests.
+* Make sure the app writes to a user-writable directory, not a protected install location.
+
+### Linux
+
+* No special package-level permission is usually required for outbound HTTPS requests.
+* Make sure the app writes to a user-writable directory.
+* If you distribute the app through a sandboxed system such as Snap or Flatpak, you may need to grant filesystem or network access in that packaging configuration.
+
+### Flutter Web
+
+* Browsers do not let Flutter web apps write arbitrary files to local disk.
+* The current metadata download flow is therefore not suitable for web as-is.
+* For web, bundle pre-generated metadata with your app or serve it from your backend.
+
+### Dart CLI / Server
+
+* The process needs outbound internet access and write access to the target directory.
+* In locked-down environments such as CI, containers, or serverless platforms, make sure egress to `raw.githubusercontent.com` is allowed.
+
+### Common issues
+
+* `SocketException: Connection failed (OS Error: Operation not permitted)` usually means the app is sandboxed and missing network permission.
+* `SocketException: Failed host lookup` usually points to DNS or general network connectivity problems.
+* Download succeeds but parsing still fails: make sure metadata was loaded before calling `PhoneNumber.parse(...)`.
 
 ---
 
@@ -135,9 +175,9 @@ void main() async {
 ## ✅ Validation
 
 ```dart
-final valid = phone.validate();
-final validMobile = phone.validate(type: PhoneNumberType.mobile);
-final validFixed = phone.validate(type: PhoneNumberType.fixedLine);
+final valid = phone.isValid();
+final validMobile = phone.isValid(type: PhoneNumberType.mobile);
+final validFixed = phone.isValid(type: PhoneNumberType.fixedLine);
 ```
 
 ---
@@ -147,7 +187,7 @@ final validFixed = phone.validate(type: PhoneNumberType.fixedLine);
 Region-specific formatting that respects local conventions:
 
 ```dart
-final phoneNumber = PhoneNumber.parse('2025550119', destinationCountry: IsoCode.US);
+final phoneNumber = PhoneNumber.parse('2025550119', destinationCountry: 'US');
 print(phoneNumber.formatNsn()); // (202) 555-0119
 ```
 

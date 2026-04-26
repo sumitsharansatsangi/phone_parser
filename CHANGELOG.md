@@ -1,3 +1,10 @@
+## 0.0.8
+
+- Improved README platform setup guidance for Android, iOS, macOS, Windows, Linux, Flutter Web, and Dart CLI/Server.
+- Documented the macOS `com.apple.security.network.client` entitlement required for metadata download in sandboxed Flutter desktop apps.
+- Fixed README usage examples to match the current API, including `isValid()` and string ISO country codes such as `'US'`.
+- Updated the example macOS app entitlements so metadata download works correctly.
+
 ## 0.0.7
 
  - Docs update

@@ -37,6 +37,7 @@ Google’s libphonenumber is fantastic, but:
 * ✅ **Formatting** — Format numbers region-specifically
 * ✅ **Phone Ranges** — Expand or compare ranges of numbers
 * ✅ **Number Extraction** — Find phone numbers in plain text
+* ✅ **As-you-type formatting** — Format user input live as each digit is entered
 * ✅ **Eastern Arabic digits support**
 * ✅ **Best-in-class metadata** — Google-first metadata with Apple filling gaps
 
@@ -249,6 +250,22 @@ Region-specific formatting that respects local conventions:
 ```dart
 final phoneNumber = PhoneNumber.parse('2025550119', destinationCountry: 'US');
 print(phoneNumber.formatNsn()); // (202) 555-0119
+```
+
+### As-you-type formatting
+
+```dart
+final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+for (final digit in '2025550119'.split('')) {
+  print(formatter.inputDigit(digit));
+}
+// 2
+// 20
+// (202
+// (202) 5
+// ...
+// (202) 555-0119
 ```
 
 ---

@@ -1,3 +1,4 @@
+import 'package:phone_parser/src/formatting/as_you_type_formatter.dart';
 import 'package:phone_parser/src/formatting/phone_number_formatter.dart';
 import 'package:phone_parser/src/metadata/metadata_finder.dart';
 import 'package:phone_parser/src/parsers/_text_parser.dart';
@@ -94,6 +95,13 @@ class PhoneNumber {
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
   String formatNsn({String? isoCode, NsnFormat format = NsnFormat.national}) =>
       PhoneNumberFormatter.formatNsn(nsn, isoCode ?? this.isoCode, format);
+
+  /// Returns a formatter that applies region-aware formatting on each digit.
+  static AsYouTypeFormatter getAsYouTypeFormatter(
+    String isoCode, {
+    NsnFormat format = NsnFormat.national,
+  }) =>
+      AsYouTypeFormatter(isoCode: isoCode, format: format);
   //
   //  Validation
   //
@@ -139,9 +147,9 @@ class PhoneNumber {
   /// validation to resolve the most likely region. Returns `null` when no
   /// region can be determined from the available metadata.
   String? getRegionCode() => MetadataFinder.getRegionCodeForNumber(
-    countryCode,
-    nsn,
-  );
+        countryCode,
+        nsn,
+      );
 
   //
   //  text
@@ -184,14 +192,14 @@ class PhoneNumber {
           : MatchType.nsnMatch;
     }
 
-    final sameCountryCode = first.number.countryCode == second.number.countryCode;
+    final sameCountryCode =
+        first.number.countryCode == second.number.countryCode;
     if (sameCountryCode &&
         _isNationalNumberSuffixOfTheOther(first.number, second.number)) {
       return MatchType.shortNsnMatch;
     }
 
-    if (!first.hadExplicitCountryContext ||
-        !second.hadExplicitCountryContext) {
+    if (!first.hadExplicitCountryContext || !second.hadExplicitCountryContext) {
       if (first.number.nsn == second.number.nsn) {
         return MatchType.nsnMatch;
       }
@@ -351,8 +359,7 @@ class PhoneNumber {
       return null;
     }
 
-    final hasExplicitCountryContext =
-        normalized.startsWith('+') ||
+    final hasExplicitCountryContext = normalized.startsWith('+') ||
         normalized.startsWith('00') ||
         normalized.startsWith('011');
 
@@ -366,7 +373,8 @@ class PhoneNumber {
 
       if (counterpart != null) {
         return _ComparablePhoneNumber(
-          number: PhoneNumber.parse(input, destinationCountry: counterpart.isoCode),
+          number:
+              PhoneNumber.parse(input, destinationCountry: counterpart.isoCode),
           hadExplicitCountryContext: false,
         );
       }

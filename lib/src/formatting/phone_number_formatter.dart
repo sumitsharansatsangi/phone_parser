@@ -43,6 +43,12 @@ class PhoneNumberFormatter {
         intlFormat != null &&
         intlFormat != 'NA') {
       transformRule = intlFormat;
+    } else if (format == NsnFormat.national) {
+      transformRule = _applyNationalPrefixFormattingRule(
+        transformRule: transformRule,
+        formatingRule: formatingRule,
+        isoCode: isoCode,
+      );
     }
 
     var formatted = NationalNumberParser.applyTransformRules(
@@ -52,6 +58,33 @@ class PhoneNumberFormatter {
     );
     formatted = _removeMissingDigits(formatted, missingDigits);
     return formatted;
+  }
+
+  static String _applyNationalPrefixFormattingRule({
+    required String transformRule,
+    required Map<String, dynamic> formatingRule,
+    required String isoCode,
+  }) {
+    final nationalPrefixFormattingRule =
+        formatingRule["nationalPrefixFormattingRule"]?.toString();
+    if (nationalPrefixFormattingRule == null ||
+        nationalPrefixFormattingRule.isEmpty) {
+      return transformRule;
+    }
+
+    final nationalPrefix =
+        MetadataFinder.findMetadataForIsoCode(isoCode)["nationalPrefix"]
+            ?.toString();
+    if (nationalPrefix == null || nationalPrefix.isEmpty) {
+      return transformRule;
+    }
+
+    final firstGroupToken = r'$1';
+    final formattedFirstGroup = nationalPrefixFormattingRule
+        .replaceAll(r'$NP', nationalPrefix)
+        .replaceAll(r'$FG', firstGroupToken);
+
+    return transformRule.replaceFirst(firstGroupToken, formattedFirstGroup);
   }
 
   static String _removeMissingDigits(String formatted, String missingDigits) {
@@ -78,7 +111,9 @@ class PhoneNumberFormatter {
   static String _getMissingDigits(String nsn, String isoCode) {
     final lengthRule = MetadataFinder.findMetadataLengthForIsoCode(isoCode);
     var missingDigits = '';
-    if (lengthRule.isNotEmpty && lengthRule["general"]!.isNotEmpty && lengthRule["mobile"]!.isNotEmpty) {
+    if (lengthRule.isNotEmpty &&
+        lengthRule["general"]!.isNotEmpty &&
+        lengthRule["mobile"]!.isNotEmpty) {
       final minLength =
           max<int>(lengthRule["fixedLine"]!.first, lengthRule["mobile"]!.first);
       // added digits so we match the pattern in case of an incomplete phone number

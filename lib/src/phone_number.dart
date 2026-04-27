@@ -3,6 +3,7 @@ import 'package:phone_parser/src/metadata/metadata_finder.dart';
 import 'package:phone_parser/src/parsers/_text_parser.dart';
 import 'package:phone_parser/src/parsers/phone_parser.dart';
 import 'package:phone_parser/src/range/phone_number_range.dart';
+import 'package:phone_parser/src/validation/match_type.dart';
 import 'package:phone_parser/src/validation/phone_number_type.dart';
 import 'package:phone_parser/src/validation/validator.dart';
 
@@ -58,6 +59,38 @@ class PhoneNumber {
         destinationCountry: destinationCountry,
       );
 
+  /// Returns a valid fixed-line example number for the given region when available.
+  static PhoneNumber? getExampleNumber(String isoCode) =>
+      getExampleNumberForType(
+        isoCode: isoCode,
+        type: PhoneNumberType.fixedLine,
+      );
+
+  /// Returns a valid example number for the given region and type when available.
+  static PhoneNumber? getExampleNumberForType({
+    required String isoCode,
+    required PhoneNumberType type,
+  }) {
+    final normalizedIsoCode = isoCode.toUpperCase();
+    if (type == PhoneNumberType.unknown) {
+      return null;
+    }
+
+    try {
+      final metadata = MetadataFinder.findMetadataForIsoCode(normalizedIsoCode);
+      final examples = MetadataFinder.findMetadataExamplesForIsoCode(
+        normalizedIsoCode,
+      );
+      final example = examples[_exampleKeyForType(type)];
+      if (example == null || example.isEmpty) {
+        return null;
+      }
+      return PhoneNumber(isoCode: metadata["isoCode"], nsn: example);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
   String formatNsn({String? isoCode, NsnFormat format = NsnFormat.national}) =>
       PhoneNumberFormatter.formatNsn(nsn, isoCode ?? this.isoCode, format);
@@ -69,9 +102,46 @@ class PhoneNumber {
   bool isValid({PhoneNumberType? type}) =>
       Validator.validateWithPattern(isoCode, nsn, type);
 
+  /// Validates a phone number against a specific region.
+  ///
+  /// Returns `false` when the region code is invalid, when the region does not
+  /// share this number's country calling code, or when the national number does
+  /// not match the target region's metadata.
+  bool isValidForRegion(String regionCode, {PhoneNumberType? type}) {
+    final normalizedRegionCode = regionCode.toUpperCase();
+
+    try {
+      final regionMetadata = MetadataFinder.findMetadataForIsoCode(
+        normalizedRegionCode,
+      );
+      if (regionMetadata["countryCode"] != countryCode) {
+        return false;
+      }
+      return Validator.validateWithPattern(normalizedRegionCode, nsn, type);
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// validates a phone number by only checking its length
   bool isValidLength({PhoneNumberType? type}) =>
       Validator.validateWithLength(isoCode, nsn, type);
+
+  /// Detects the phone number type.
+  ///
+  /// Returns [PhoneNumberType.unknown] when the number is invalid or when no
+  /// known type matches the region metadata.
+  PhoneNumberType getNumberType() => Validator.getNumberType(isoCode, nsn);
+
+  /// Returns the best-matching region code for this phone number.
+  ///
+  /// For shared calling codes, this uses leading digits and per-region pattern
+  /// validation to resolve the most likely region. Returns `null` when no
+  /// region can be determined from the available metadata.
+  String? getRegionCode() => MetadataFinder.getRegionCodeForNumber(
+    countryCode,
+    nsn,
+  );
 
   //
   //  text
@@ -85,6 +155,53 @@ class PhoneNumber {
           return null;
         }
       }).whereType<PhoneNumber>();
+
+  /// Compares two phone numbers for equality at different match strengths.
+  ///
+  /// This supports [PhoneNumber] instances directly and can also compare raw
+  /// strings. When a string does not contain an explicit country calling code,
+  /// this method will infer the region from the other operand when possible.
+  static MatchType isNumberMatch(Object firstNumberIn, Object secondNumberIn) {
+    final first = _coerceToComparableNumber(
+      firstNumberIn,
+      counterpart: secondNumberIn is PhoneNumber ? secondNumberIn : null,
+    );
+    if (first == null) {
+      return MatchType.notANumber;
+    }
+
+    final second = _coerceToComparableNumber(
+      secondNumberIn,
+      counterpart: first.number,
+    );
+    if (second == null) {
+      return MatchType.notANumber;
+    }
+
+    if (first.number == second.number) {
+      return first.hadExplicitCountryContext && second.hadExplicitCountryContext
+          ? MatchType.exactMatch
+          : MatchType.nsnMatch;
+    }
+
+    final sameCountryCode = first.number.countryCode == second.number.countryCode;
+    if (sameCountryCode &&
+        _isNationalNumberSuffixOfTheOther(first.number, second.number)) {
+      return MatchType.shortNsnMatch;
+    }
+
+    if (!first.hadExplicitCountryContext ||
+        !second.hadExplicitCountryContext) {
+      if (first.number.nsn == second.number.nsn) {
+        return MatchType.nsnMatch;
+      }
+      if (_isNationalNumberSuffixOfTheOther(first.number, second.number)) {
+        return MatchType.shortNsnMatch;
+      }
+    }
+
+    return MatchType.noMatch;
+  }
 
   //
   //  inequalities
@@ -186,4 +303,94 @@ class PhoneNumber {
       nsn: map['nsn'] ?? '',
     );
   }
+
+  static String _exampleKeyForType(PhoneNumberType type) {
+    switch (type) {
+      case PhoneNumberType.fixedLine:
+      case PhoneNumberType.fixedLineOrMobile:
+        return 'fixedLine';
+      case PhoneNumberType.mobile:
+        return 'mobile';
+      case PhoneNumberType.voip:
+        return 'voip';
+      case PhoneNumberType.tollFree:
+        return 'tollFree';
+      case PhoneNumberType.premiumRate:
+        return 'premiumRate';
+      case PhoneNumberType.sharedCost:
+        return 'sharedCost';
+      case PhoneNumberType.personalNumber:
+        return 'personalNumber';
+      case PhoneNumberType.uan:
+        return 'uan';
+      case PhoneNumberType.pager:
+        return 'pager';
+      case PhoneNumberType.voiceMail:
+        return 'voiceMail';
+      case PhoneNumberType.unknown:
+        return 'general';
+    }
+  }
+
+  static _ComparablePhoneNumber? _coerceToComparableNumber(
+    Object input, {
+    PhoneNumber? counterpart,
+  }) {
+    if (input is PhoneNumber) {
+      return _ComparablePhoneNumber(
+        number: input,
+        hadExplicitCountryContext: true,
+      );
+    }
+    if (input is! String) {
+      return null;
+    }
+
+    final normalized = TextParser.normalizePhoneNumber(input);
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    final hasExplicitCountryContext =
+        normalized.startsWith('+') ||
+        normalized.startsWith('00') ||
+        normalized.startsWith('011');
+
+    try {
+      if (hasExplicitCountryContext) {
+        return _ComparablePhoneNumber(
+          number: PhoneNumber.parse(input),
+          hadExplicitCountryContext: true,
+        );
+      }
+
+      if (counterpart != null) {
+        return _ComparablePhoneNumber(
+          number: PhoneNumber.parse(input, destinationCountry: counterpart.isoCode),
+          hadExplicitCountryContext: false,
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool _isNationalNumberSuffixOfTheOther(
+    PhoneNumber firstNumber,
+    PhoneNumber secondNumber,
+  ) {
+    return firstNumber.nsn.endsWith(secondNumber.nsn) ||
+        secondNumber.nsn.endsWith(firstNumber.nsn);
+  }
+}
+
+class _ComparablePhoneNumber {
+  final PhoneNumber number;
+  final bool hadExplicitCountryContext;
+
+  const _ComparablePhoneNumber({
+    required this.number,
+    required this.hadExplicitCountryContext,
+  });
 }

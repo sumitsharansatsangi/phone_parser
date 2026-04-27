@@ -226,6 +226,18 @@ void main() async {
 final valid = phone.isValid();
 final validMobile = phone.isValid(type: PhoneNumberType.mobile);
 final validFixed = phone.isValid(type: PhoneNumberType.fixedLine);
+final detectedType = phone.getNumberType();
+final isKnownType = detectedType != PhoneNumberType.unknown;
+final validForRegion = phone.isValidForRegion('FR');
+final match = PhoneNumber.isNumberMatch(
+  '+33 655 5705 76',
+  PhoneNumber.parse('0 655 5705 76', callerCountry: 'FR'),
+);
+final supportedRegions = MetadataFinder.supportedRegions;
+final supportedCallingCodes = MetadataFinder.supportedCallingCodes;
+final mainNanpaRegion = MetadataFinder.getRegionCodeForCountryCode('1');
+final zaTypes = MetadataFinder.getSupportedTypesForRegion('ZA');
+final region = PhoneNumber.parse('+1 268 460 1234').getRegionCode();
 ```
 
 ---
@@ -237,6 +249,18 @@ Region-specific formatting that respects local conventions:
 ```dart
 final phoneNumber = PhoneNumber.parse('2025550119', destinationCountry: 'US');
 print(phoneNumber.formatNsn()); // (202) 555-0119
+```
+
+---
+
+## 💡 Example Numbers
+
+```dart
+final example = PhoneNumber.getExampleNumber('ZA');
+final mobileExample = PhoneNumber.getExampleNumberForType(
+  isoCode: 'ZA',
+  type: PhoneNumberType.mobile,
+);
 ```
 
 ---

@@ -5,10 +5,24 @@ import 'package:phone_parser/src/download_file/download_file.dart';
 import 'package:phone_parser/src/metadata/bundled_metadata.g.dart';
 
 import '../parsers/phone_number_exceptions.dart';
+import '../validation/phone_number_type.dart';
 import '../validation/validator.dart';
 
 /// Helper to find metadata
 abstract class MetadataFinder {
+  static const List<PhoneNumberType> _supportedRegionTypes = [
+    PhoneNumberType.fixedLine,
+    PhoneNumberType.mobile,
+    PhoneNumberType.voip,
+    PhoneNumberType.tollFree,
+    PhoneNumberType.premiumRate,
+    PhoneNumberType.sharedCost,
+    PhoneNumberType.personalNumber,
+    PhoneNumberType.uan,
+    PhoneNumberType.pager,
+    PhoneNumberType.voiceMail,
+  ];
+
   static Map<String, dynamic> info = {};
 
   /// Loads and caches parsed metadata for all supported regions.
@@ -139,6 +153,34 @@ abstract class MetadataFinder {
     return map;
   }
 
+  static List<String> get supportedRegions {
+    final regions = info.keys.map((key) => key.toUpperCase()).toList()..sort();
+    return regions;
+  }
+
+  static List<String> get supportedCallingCodes {
+    final callingCodes = info.values
+        .map((value) => value['countryCode']?.toString())
+        .whereType<String>()
+        .toSet()
+        .toList()
+      ..sort();
+    return callingCodes;
+  }
+
+  static Map<String, String> findMetadataExamplesForIsoCode(String isoCode) {
+    final map = info[isoCode]["examples"];
+    if (map == null) {
+      throw PhoneNumberException(
+        code: Code.invalidIsoCode,
+        description: 'isoCode "$isoCode" not found',
+      );
+    }
+    return (map as Map<String, dynamic>).map(
+      (key, value) => MapEntry(key, value.toString()),
+    );
+  }
+
   static Map<String, dynamic>? findMetadataForCountryCode(
     String countryCode,
     String nationalNumber,
@@ -155,6 +197,68 @@ abstract class MetadataFinder {
 
     final match = _getMatchUsingPatterns(nationalNumber, allMatchingMetadata);
     return match;
+  }
+
+  static String? getRegionCodeForCountryCode(String countryCode) {
+    final regions = countryCodeToIsoCode(countryCode);
+    if (regions.isEmpty) {
+      return null;
+    }
+    return regions.first;
+  }
+
+  static String? getRegionCodeForNumber(
+    String countryCode,
+    String nationalNumber,
+  ) {
+    final regions = countryCodeToIsoCode(countryCode);
+    if (regions.isEmpty) {
+      return null;
+    }
+    if (regions.length == 1) {
+      return regions.first;
+    }
+
+    for (final regionCode in regions) {
+      final metadata = findMetadataForIsoCode(regionCode);
+      final leadingDigits = metadata['leadingDigits']?.toString();
+      if (leadingDigits != null && leadingDigits.isNotEmpty) {
+        if (nationalNumber.startsWith(leadingDigits)) {
+          return regionCode;
+        }
+        continue;
+      }
+
+      if (Validator.getNumberType(regionCode, nationalNumber) !=
+          PhoneNumberType.unknown) {
+        return regionCode;
+      }
+    }
+
+    return null;
+  }
+
+  static List<String> getRegionCodesForCountryCode(String countryCode) {
+    return countryCodeToIsoCode(countryCode);
+  }
+
+  static String? getCountryCodeForRegion(String isoCode) {
+    try {
+      final metadata = findMetadataForIsoCode(isoCode.toUpperCase());
+      return metadata['countryCode']?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static List<PhoneNumberType> getSupportedTypesForRegion(String isoCode) {
+    final normalizedIsoCode = isoCode.toUpperCase();
+    final patterns = findMetadataPatternsForIsoCode(normalizedIsoCode);
+
+    return _supportedRegionTypes.where((type) {
+      final pattern = _patternForType(patterns, type);
+      return pattern.isNotEmpty;
+    }).toList();
   }
 
   static List<String> countryCodeToIsoCode(String countryCode) {
@@ -227,5 +331,36 @@ abstract class MetadataFinder {
   static bool _loadMetadataJson(String jsonString) {
     info = jsonDecode(jsonString) as Map<String, dynamic>;
     return true;
+  }
+
+  static String _patternForType(
+    Map<String, dynamic> patternMetadatas,
+    PhoneNumberType type,
+  ) {
+    switch (type) {
+      case PhoneNumberType.fixedLine:
+        return patternMetadatas['fixedLine'] ?? '';
+      case PhoneNumberType.mobile:
+        return patternMetadatas['mobile'] ?? '';
+      case PhoneNumberType.voip:
+        return patternMetadatas['voip'] ?? '';
+      case PhoneNumberType.tollFree:
+        return patternMetadatas['tollFree'] ?? '';
+      case PhoneNumberType.premiumRate:
+        return patternMetadatas['premiumRate'] ?? '';
+      case PhoneNumberType.sharedCost:
+        return patternMetadatas['sharedCost'] ?? '';
+      case PhoneNumberType.personalNumber:
+        return patternMetadatas['personalNumber'] ?? '';
+      case PhoneNumberType.uan:
+        return patternMetadatas['uan'] ?? '';
+      case PhoneNumberType.pager:
+        return patternMetadatas['pager'] ?? '';
+      case PhoneNumberType.voiceMail:
+        return patternMetadatas['voiceMail'] ?? '';
+      case PhoneNumberType.fixedLineOrMobile:
+      case PhoneNumberType.unknown:
+        return '';
+    }
   }
 }

@@ -5,6 +5,19 @@ import 'phone_number_type.dart';
 
 /// Validates phone numbers
 abstract class Validator {
+  static const List<PhoneNumberType> _detectableTypes = [
+    PhoneNumberType.premiumRate,
+    PhoneNumberType.tollFree,
+    PhoneNumberType.sharedCost,
+    PhoneNumberType.voip,
+    PhoneNumberType.personalNumber,
+    PhoneNumberType.pager,
+    PhoneNumberType.uan,
+    PhoneNumberType.voiceMail,
+    PhoneNumberType.fixedLine,
+    PhoneNumberType.mobile,
+  ];
+
   /// Returns whether or not a national number is viable using pattern matching
   ///
   /// [nsn] national number without country code,
@@ -21,35 +34,64 @@ abstract class Validator {
     if (!validateWithLength(isoCode, national)) {
       return false;
     }
-    final patterns = <String>[];
-    // if no type is specified we check both mobile and fixed line as checking the
-    // general one gives too much false positives
-    if (type == null) {
-      patterns.addAll([
-        _getPatterns(patternMetadatas, PhoneNumberType.fixedLine),
-        _getPatterns(patternMetadatas, PhoneNumberType.mobile),
-        if (patternMetadatas["voip"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.voip),
-        if (patternMetadatas["tollFree"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.tollFree),
-        if (patternMetadatas["premiumRate"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.premiumRate),
-        if (patternMetadatas["sharedCost"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.sharedCost),
-        if (patternMetadatas["personalNumber"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.personalNumber),
-        if (patternMetadatas["uan"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.uan),
-        if (patternMetadatas["pager"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.pager),
-        if (patternMetadatas["voiceMail"].isNotEmpty)
-          _getPatterns(patternMetadatas, PhoneNumberType.voiceMail),
-      ]);
-    } else {
-      patterns.add(_getPatterns(patternMetadatas, type));
-    }
+    final patterns = type == null
+        ? _detectableTypes
+            .map((candidate) => _getPatterns(patternMetadatas, candidate))
+            .where((pattern) => pattern.isNotEmpty)
+            .toList()
+        : [_getPatterns(patternMetadatas, type)];
     return patterns
         .any((r) => RegExp('^(?:$r)\$').firstMatch(national) != null);
+  }
+
+  /// Returns the detected phone number type.
+  ///
+  /// Returns [PhoneNumberType.unknown] when the number is invalid or does not
+  /// match a known pattern for the region.
+  static PhoneNumberType getNumberType(String isoCode, String national) {
+    if (!validateWithLength(isoCode, national)) {
+      return PhoneNumberType.unknown;
+    }
+
+    final patternMetadatas =
+        MetadataFinder.findMetadataPatternsForIsoCode(isoCode);
+    final generalPattern = patternMetadatas["general"];
+    if (generalPattern.isEmpty ||
+        RegExp('^(?:$generalPattern)\$').firstMatch(national) == null) {
+      return PhoneNumberType.unknown;
+    }
+
+    for (final type in _detectableTypes) {
+      if (type == PhoneNumberType.fixedLine || type == PhoneNumberType.mobile) {
+        continue;
+      }
+      if (validateWithPattern(isoCode, national, type)) {
+        return type;
+      }
+    }
+
+    final isFixedLine = validateWithPattern(
+      isoCode,
+      national,
+      PhoneNumberType.fixedLine,
+    );
+    final isMobile = validateWithPattern(
+      isoCode,
+      national,
+      PhoneNumberType.mobile,
+    );
+
+    if (isFixedLine && isMobile) {
+      return PhoneNumberType.fixedLineOrMobile;
+    }
+    if (isFixedLine) {
+      return PhoneNumberType.fixedLine;
+    }
+    if (isMobile) {
+      return PhoneNumberType.mobile;
+    }
+
+    return PhoneNumberType.unknown;
   }
 
   /// Returns whether or not a national number is viable using length
@@ -114,6 +156,11 @@ abstract class Validator {
       case PhoneNumberType.fixedLine:
         key = "fixedLine";
         break;
+      case PhoneNumberType.fixedLineOrMobile:
+        return {
+          ..._getLengths(lengthMetadatas, PhoneNumberType.fixedLine),
+          ..._getLengths(lengthMetadatas, PhoneNumberType.mobile),
+        }.toList();
       case PhoneNumberType.voip:
         key = "voip";
         break;
@@ -138,6 +185,7 @@ abstract class Validator {
       case PhoneNumberType.voiceMail:
         key = "voiceMail";
         break;
+      case PhoneNumberType.unknown:
       default:
         key = "general";
     }
@@ -156,6 +204,8 @@ abstract class Validator {
         return patternMetadatas["mobile"];
       case PhoneNumberType.fixedLine:
         return patternMetadatas["fixedLine"];
+      case PhoneNumberType.fixedLineOrMobile:
+        return '';
       case PhoneNumberType.voip:
         return patternMetadatas["voip"];
       case PhoneNumberType.tollFree:
@@ -172,6 +222,7 @@ abstract class Validator {
         return patternMetadatas["pager"];
       case PhoneNumberType.voiceMail:
         return patternMetadatas["voiceMail"];
+      case PhoneNumberType.unknown:
       default:
         return patternMetadatas["general"];
     }

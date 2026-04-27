@@ -1,6 +1,7 @@
 enum PhoneNumberType {
-  mobile,
   fixedLine,
+  mobile,
+  fixedLineOrMobile,
   voip,
   tollFree,
   premiumRate,
@@ -9,4 +10,5 @@ enum PhoneNumberType {
   uan,
   pager,
   voiceMail,
+  unknown,
 }

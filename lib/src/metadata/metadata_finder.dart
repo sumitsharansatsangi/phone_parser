@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:phone_parser/src/download_file/download_file.dart';
+import 'package:phone_parser/src/metadata/bundled_metadata.dart';
 
 import '../parsers/phone_number_exceptions.dart';
 import '../validation/validator.dart';
@@ -22,10 +24,19 @@ abstract class MetadataFinder {
     ],
   }) async {
     String? filePath = await downloadMetadata(downloadDir, sources: sources);
-    if (filePath != null) {
-      final jsonString = await File(filePath).readAsString();
-      info = jsonDecode(jsonString);
+    if (filePath != null && await _loadMetadataFile(filePath)) {
+      return;
     }
+
+    final bundledFile = await _findBundledMetadataFile();
+    if (bundledFile != null && await _loadMetadataFile(bundledFile.path)) {
+      print("📦 Using bundled metadata snapshot from ${bundledFile.path}");
+      return;
+    }
+
+    throw StateError(
+      'Unable to load phone metadata from either downloaded cache or bundled fallback.',
+    );
   }
 
   static Map<String, Map<String, dynamic>> getMetadata() {
@@ -194,5 +205,28 @@ abstract class MetadataFinder {
       (fit) => fit["isMainCountryForDialCode"],
       orElse: () => potentialFits[0],
     );
+  }
+
+  static Future<bool> _loadMetadataFile(String filePath) async {
+    try {
+      final jsonString = await File(filePath).readAsString();
+      info = jsonDecode(jsonString) as Map<String, dynamic>;
+      return true;
+    } catch (e) {
+      print("⚠️ Failed to load metadata from $filePath: $e");
+      return false;
+    }
+  }
+
+  static Future<File?> _findBundledMetadataFile() async {
+    final bundledUri = await Isolate.resolvePackageUri(
+      Uri.parse(bundledMetadataPackagePath),
+    );
+
+    if (bundledUri == null || bundledUri.scheme != 'file') {
+      return null;
+    }
+
+    return File.fromUri(bundledUri);
   }
 }

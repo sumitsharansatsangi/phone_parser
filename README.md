@@ -61,11 +61,19 @@ dependencies:
 
 `phone_parser` downloads metadata and saves it locally before parsing numbers. By default it fetches Google’s libphonenumber and Apple’s PhoneNumberKit metadata, then merges them into one parsed file.
 
+The package also ships with a bundled metadata snapshot. If runtime download fails on first launch because the device is offline or upstream is temporarily unavailable, `phone_parser` falls back to that bundled snapshot instead of leaving metadata empty.
+
 Merge behavior:
 
 * Google values are kept when present
 * Apple values are used only when Google is missing a value
 * If Apple is missing a value, the Google value remains
+
+Load order:
+
+* Use the freshest downloaded local metadata when available
+* Refresh from upstream based on the package refresh policy
+* Fall back to the bundled metadata snapshot if download or cache loading fails
 
 On every platform you need two things:
 

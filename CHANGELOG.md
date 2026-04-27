@@ -1,3 +1,8 @@
+## 0.0.9
+- Added a bundled metadata snapshot fallback so parsing can still work when runtime metadata download is unavailable.
+- Updated metadata loading to prefer downloaded metadata and fall back to the bundled snapshot when cache refresh or first-run download fails.
+- Added a repository script to refresh the bundled metadata snapshot from the latest upstream Google libphonenumber and Apple PhoneNumberKit sources.
+
 ## 0.0.8
 - Added merged metadata support using both Google libphonenumber and Apple PhoneNumberKit.
 - Made Google the primary metadata source and fill missing values from Apple when available.

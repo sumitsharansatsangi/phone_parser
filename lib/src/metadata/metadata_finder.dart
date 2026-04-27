@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:phone_parser/src/download_file/download_file.dart';
-import 'package:phone_parser/src/metadata/bundled_metadata.dart';
+import 'package:phone_parser/src/metadata/bundled_metadata.g.dart';
 
 import '../parsers/phone_number_exceptions.dart';
 import '../validation/validator.dart';
@@ -28,9 +27,8 @@ abstract class MetadataFinder {
       return;
     }
 
-    final bundledFile = await _findBundledMetadataFile();
-    if (bundledFile != null && await _loadMetadataFile(bundledFile.path)) {
-      print("📦 Using bundled metadata snapshot from ${bundledFile.path}");
+    if (_loadBundledMetadata()) {
+      print("📦 Using bundled metadata snapshot packaged with phone_parser");
       return;
     }
 
@@ -210,23 +208,24 @@ abstract class MetadataFinder {
   static Future<bool> _loadMetadataFile(String filePath) async {
     try {
       final jsonString = await File(filePath).readAsString();
-      info = jsonDecode(jsonString) as Map<String, dynamic>;
-      return true;
+      return _loadMetadataJson(jsonString);
     } catch (e) {
       print("⚠️ Failed to load metadata from $filePath: $e");
       return false;
     }
   }
 
-  static Future<File?> _findBundledMetadataFile() async {
-    final bundledUri = await Isolate.resolvePackageUri(
-      Uri.parse(bundledMetadataPackagePath),
-    );
-
-    if (bundledUri == null || bundledUri.scheme != 'file') {
-      return null;
+  static bool _loadBundledMetadata() {
+    try {
+      return _loadMetadataJson(bundledMetadataJson);
+    } catch (e) {
+      print("⚠️ Failed to load bundled metadata snapshot: $e");
+      return false;
     }
+  }
 
-    return File.fromUri(bundledUri);
+  static bool _loadMetadataJson(String jsonString) {
+    info = jsonDecode(jsonString) as Map<String, dynamic>;
+    return true;
   }
 }

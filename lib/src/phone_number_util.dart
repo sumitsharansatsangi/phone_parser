@@ -52,7 +52,7 @@ class PhoneNumberUtil {
   Iterable<PhoneNumber> findNumbers(String text) =>
       PhoneNumber.findPotentialPhoneNumbers(text);
 
-  AsYouTypeFormatter getAsYouTypeFormatter(
+  PhoneParserTextInputFormatter getAsYouTypeFormatter(
     String isoCode, {
     NsnFormat format = NsnFormat.national,
   }) =>

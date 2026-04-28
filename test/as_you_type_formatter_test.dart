@@ -10,7 +10,7 @@ void main() {
         jsonDecode(bundledMetadataJson) as Map<String, dynamic>;
   });
 
-  group('AsYouTypeFormatter', () {
+  group('PhoneParserTextInputFormatter', () {
     test('formats US numbers progressively', () {
       final formatter = PhoneNumber.getAsYouTypeFormatter('US');
       final outputs = <String>[];
@@ -122,7 +122,8 @@ void main() {
 
       final output = formatter.inputDigit('12345678901234567890');
 
-      expect(formatter.normalizedDigits, hasLength(AsYouTypeFormatter.maxDigits));
+      expect(formatter.normalizedDigits,
+          hasLength(PhoneParserTextInputFormatter.maxDigits));
       expect(output, isNotEmpty);
     });
 

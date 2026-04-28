@@ -110,11 +110,11 @@ class PhoneNumber {
       );
 
   /// Returns a formatter that applies region-aware formatting on each digit.
-  static AsYouTypeFormatter getAsYouTypeFormatter(
+  static PhoneParserTextInputFormatter getAsYouTypeFormatter(
     String isoCode, {
     NsnFormat format = NsnFormat.national,
   }) =>
-      AsYouTypeFormatter(isoCode: isoCode, format: format);
+      PhoneParserTextInputFormatter(isoCode: isoCode, format: format);
   //
   //  Validation
   //

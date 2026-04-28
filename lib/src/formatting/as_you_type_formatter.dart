@@ -6,7 +6,7 @@ import 'package:phone_parser/src/parsers/_national_number_parser.dart';
 import 'package:phone_parser/src/regex/constants.dart';
 
 /// Formats a phone number as digits are entered.
-class AsYouTypeFormatter {
+class PhoneParserTextInputFormatter {
   static const int maxDigits = 15;
   final String isoCode;
   final NsnFormat format;
@@ -15,7 +15,7 @@ class AsYouTypeFormatter {
   final StringBuffer _digits = StringBuffer();
   bool _hasLeadingPlus = false;
 
-  AsYouTypeFormatter({
+  PhoneParserTextInputFormatter({
     required this.isoCode,
     this.format = NsnFormat.national,
     this.digitLimit = maxDigits,

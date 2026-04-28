@@ -7,8 +7,10 @@ import 'package:phone_parser/src/regex/constants.dart';
 
 /// Formats a phone number as digits are entered.
 class AsYouTypeFormatter {
+  static const int maxDigits = 15;
   final String isoCode;
   final NsnFormat format;
+  final int digitLimit;
 
   final StringBuffer _digits = StringBuffer();
   bool _hasLeadingPlus = false;
@@ -16,7 +18,8 @@ class AsYouTypeFormatter {
   AsYouTypeFormatter({
     required this.isoCode,
     this.format = NsnFormat.national,
-  });
+    this.digitLimit = maxDigits,
+  }) : assert(digitLimit >= 0);
 
   /// Current normalized numeric input, excluding a leading plus sign.
   String get normalizedDigits => _digits.toString();
@@ -30,11 +33,21 @@ class AsYouTypeFormatter {
     _hasLeadingPlus = false;
   }
 
+  /// Replaces all current input with [input] and returns the formatted output.
+  String replace(String input) {
+    clear();
+    return inputDigit(input);
+  }
+
   /// Adds one or more characters and returns the formatted output.
   ///
   /// Unsupported characters are ignored.
   String inputDigit(String input) {
     for (final rune in input.runes) {
+      if (_digits.length >= digitLimit) {
+        break;
+      }
+
       final normalized = Constants.allNormalizationMappings[String.fromCharCode(
         rune,
       )];
@@ -50,6 +63,20 @@ class AsYouTypeFormatter {
       }
 
       _digits.write(normalized);
+    }
+
+    return currentOutput;
+  }
+
+  /// Removes the last entered digit and returns the formatted output.
+  String removeLastDigit() {
+    if (_digits.isNotEmpty) {
+      final digits = _digits.toString();
+      _digits
+        ..clear()
+        ..write(digits.substring(0, digits.length - 1));
+    } else {
+      _hasLeadingPlus = false;
     }
 
     return currentOutput;

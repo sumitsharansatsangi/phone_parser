@@ -98,6 +98,44 @@ void main() {
       expect(output, '06 55 57 05 76');
     });
 
+    test('formats pasted text by normalizing separators', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+      final output = formatter.inputDigit('202-555 0119');
+
+      expect(output, '(202) 555-0119');
+      expect(formatter.normalizedDigits, '2025550119');
+    });
+
+    test('replace resets previous input before formatting new content', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+      formatter.inputDigit('2025550119');
+      final output = formatter.replace('4155552671');
+
+      expect(output, '(415) 555-2671');
+      expect(formatter.normalizedDigits, '4155552671');
+    });
+
+    test('ignores digits beyond the E.164 maximum length', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+      final output = formatter.inputDigit('12345678901234567890');
+
+      expect(formatter.normalizedDigits, hasLength(AsYouTypeFormatter.maxDigits));
+      expect(output, isNotEmpty);
+    });
+
+    test('removeLastDigit updates the formatted output', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+      formatter.inputDigit('2025550119');
+      final output = formatter.removeLastDigit();
+
+      expect(output, '(202) 555-011');
+      expect(formatter.normalizedDigits, '202555011');
+    });
+
     test('can be cleared and reused', () {
       final formatter = PhoneNumber.getAsYouTypeFormatter('US');
 

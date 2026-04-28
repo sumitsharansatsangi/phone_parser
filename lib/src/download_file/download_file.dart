@@ -194,9 +194,9 @@ void _mergeMetadata(
     final currentValue = base[isoCode];
 
     if (currentValue is Map<String, dynamic>) {
-      base[isoCode] = _deepMergeMaps(currentValue, incomingTerritory);
+      base[isoCode] = deepMergeMetadataMaps(currentValue, incomingTerritory);
     } else if (currentValue is Map) {
-      base[isoCode] = _deepMergeMaps(
+      base[isoCode] = deepMergeMetadataMaps(
         Map<String, dynamic>.from(currentValue),
         incomingTerritory,
       );
@@ -206,7 +206,7 @@ void _mergeMetadata(
   });
 }
 
-Map<String, dynamic> _deepMergeMaps(
+Map<String, dynamic> deepMergeMetadataMaps(
   Map<String, dynamic> base,
   Map<String, dynamic> incoming,
 ) {
@@ -215,18 +215,47 @@ Map<String, dynamic> _deepMergeMaps(
   incoming.forEach((key, value) {
     final currentValue = merged[key];
     if (currentValue is Map && value is Map) {
-      merged[key] = _deepMergeMaps(
+      merged[key] = deepMergeMetadataMaps(
         Map<String, dynamic>.from(currentValue),
         Map<String, dynamic>.from(value),
       );
-    } else if (!merged.containsKey(key) || currentValue == null) {
+    } else if (!merged.containsKey(key) ||
+        _shouldPreferIncomingValue(currentValue, value)) {
       merged[key] = value;
-    } else if (value == null) {
-      merged.putIfAbsent(key, () => value);
     }
   });
 
   return merged;
+}
+
+bool _shouldPreferIncomingValue(dynamic currentValue, dynamic incomingValue) {
+  if (incomingValue == null) {
+    return false;
+  }
+
+  if (currentValue == null) {
+    return true;
+  }
+
+  if (currentValue is String) {
+    return currentValue.isEmpty &&
+        incomingValue is String &&
+        incomingValue.isNotEmpty;
+  }
+
+  if (currentValue is List) {
+    return currentValue.isEmpty &&
+        incomingValue is List &&
+        incomingValue.isNotEmpty;
+  }
+
+  if (currentValue is Map) {
+    return currentValue.isEmpty &&
+        incomingValue is Map &&
+        incomingValue.isNotEmpty;
+  }
+
+  return false;
 }
 
 /// Find latest file by timestamp in name

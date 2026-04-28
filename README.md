@@ -38,6 +38,7 @@ Google’s libphonenumber is fantastic, but:
 * ✅ **Phone Ranges** — Expand or compare ranges of numbers
 * ✅ **Number Extraction** — Find phone numbers in plain text
 * ✅ **As-you-type formatting** — Format user input live as each digit is entered
+* ✅ **Geocoding** — Resolve a parsed number to its territory or country
 * ✅ **Eastern Arabic digits support**
 * ✅ **Best-in-class metadata** — Google-first metadata with Apple filling gaps
 
@@ -266,6 +267,24 @@ for (final digit in '2025550119'.split('')) {
 // (202) 5
 // ...
 // (202) 555-0119
+```
+
+If you prefer a `dlibphonenumber`-style entry point, the same formatter is also available through `PhoneNumberUtil`:
+
+```dart
+final phoneUtil = PhoneNumberUtil.instance;
+final formatter = phoneUtil.getAsYouTypeFormatter('US');
+```
+
+### Geocoding
+
+```dart
+final phone = PhoneNumber.parse('+33 655 5705 76');
+final description = phone.getDescription();
+print(description); // France
+
+final phoneUtil = PhoneNumberUtil.instance;
+print(phoneUtil.getDescriptionForNumber(phone, Locale.english)); // France
 ```
 
 ---

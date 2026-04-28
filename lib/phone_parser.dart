@@ -4,6 +4,7 @@
 library;
 
 export 'src/phone_number.dart';
+export 'src/phone_number_util.dart';
 
 export 'src/validation/phone_number_type.dart';
 export 'src/validation/match_type.dart';
@@ -13,5 +14,7 @@ export 'src/range/phone_number_range.dart';
 export 'src/parsers/phone_parser.dart';
 export 'src/formatting/phone_number_formatter.dart';
 export 'src/formatting/as_you_type_formatter.dart';
+export 'src/geocoding/locale.dart';
+export 'src/geocoding/phone_number_offline_geocoder.dart';
 export '/src/metadata/metadata_finder.dart';
 export '/src/download_file/download_file.dart' show MetadataSource;

@@ -20,7 +20,9 @@ void main() {
       }
 
       expect(outputs.first, '2');
-      expect(outputs[2], '202');
+      expect(outputs[2], '(202');
+      expect(outputs[3], '(202) 5');
+      expect(outputs[5], '(202) 555');
       expect(outputs.last, '(202) 555-0119');
     });
 
@@ -35,6 +37,32 @@ void main() {
       expect(output, '06 55 57 05 76');
     });
 
+    test('formats UK mobile numbers progressively', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('GB');
+      final outputs = <String>[];
+
+      for (final digit in '07400123456'.split('')) {
+        outputs.add(formatter.inputDigit(digit));
+      }
+
+      expect(outputs[4], '07400');
+      expect(outputs[5], '07400 1');
+      expect(outputs.last, '07400 123456');
+    });
+
+    test('formats German fixed line numbers progressively', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('DE');
+      final outputs = <String>[];
+
+      for (final digit in '030123456'.split('')) {
+        outputs.add(formatter.inputDigit(digit));
+      }
+
+      expect(outputs[2], '030');
+      expect(outputs[3], '030 1');
+      expect(outputs.last, '030 123456');
+    });
+
     test('formats international input with a leading plus sign', () {
       final formatter = PhoneNumber.getAsYouTypeFormatter('FR');
 
@@ -44,6 +72,19 @@ void main() {
       }
 
       expect(output, '+33 6 55 57 05 76');
+    });
+
+    test(
+        'formats NANPA international input and preserves shared country code prefix',
+        () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('US');
+
+      String output = '';
+      for (final digit in '+12684601234'.split('')) {
+        output = formatter.inputDigit(digit);
+      }
+
+      expect(output, '+1 268-460-1234');
     });
 
     test('normalizes eastern arabic digits', () {

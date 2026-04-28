@@ -1,5 +1,7 @@
 import 'package:phone_parser/src/formatting/as_you_type_formatter.dart';
 import 'package:phone_parser/src/formatting/phone_number_formatter.dart';
+import 'package:phone_parser/src/geocoding/locale.dart';
+import 'package:phone_parser/src/geocoding/phone_number_offline_geocoder.dart';
 import 'package:phone_parser/src/metadata/metadata_finder.dart';
 import 'package:phone_parser/src/parsers/_text_parser.dart';
 import 'package:phone_parser/src/parsers/phone_parser.dart';
@@ -95,6 +97,17 @@ class PhoneNumber {
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
   String formatNsn({String? isoCode, NsnFormat format = NsnFormat.national}) =>
       PhoneNumberFormatter.formatNsn(nsn, isoCode ?? this.isoCode, format);
+
+  /// Returns a human-readable territory description for this phone number.
+  String getDescription({
+    Locale locale = Locale.english,
+    String? userRegion,
+  }) =>
+      PhoneNumberOfflineGeocoder.instance.getDescriptionForNumber(
+        this,
+        locale,
+        userRegion,
+      );
 
   /// Returns a formatter that applies region-aware formatting on each digit.
   static AsYouTypeFormatter getAsYouTypeFormatter(

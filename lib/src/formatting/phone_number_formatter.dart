@@ -251,7 +251,7 @@ class PhoneNumberFormatter {
 
       final isBetterGroupShape = groupCount > bestGroupCount;
       final isBetterCapacity = groupCount == bestGroupCount &&
-          (bestCapacity == null || capacity < bestCapacity!);
+          (bestCapacity == null || capacity < bestCapacity);
 
       if (bestRule == null || isBetterGroupShape || isBetterCapacity) {
         bestRule = rules;

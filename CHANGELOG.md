@@ -1,3 +1,10 @@
+## 0.1.0
+- Added offline geocoding support with `PhoneNumberOfflineGeocoder`, `Locale`, and `PhoneNumber.getDescription()`.
+- Added a `PhoneNumberUtil` facade for callers who prefer a libphonenumber-style API.
+- Improved metadata merging so secondary sources can fill empty strings, lists, and maps from the primary source.
+- Improved as-you-type formatting for incomplete inputs and shared NANPA regions without local formatting metadata.
+- Added documentation and tests covering geocoding, formatter behavior, region resolution, metadata merging, and the new utility API.
+
 ## 0.0.9
 - Added a generated bundled metadata fallback so parsing can still work when runtime metadata download is unavailable.
 - Updated metadata loading to prefer downloaded metadata and fall back to packaged generated metadata when cache refresh or first-run download fails.

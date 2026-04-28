@@ -68,7 +68,7 @@ The package also ships with a generated bundled metadata snapshot. If runtime do
 Merge behavior:
 
 * Google values are kept when present
-* Apple values are used only when Google is missing a value
+* Apple values are used when Google is missing a value or only has an empty placeholder
 * If Apple is missing a value, the Google value remains
 
 Fallback behavior:
@@ -269,7 +269,7 @@ for (final digit in '2025550119'.split('')) {
 // (202) 555-0119
 ```
 
-If you prefer a `dlibphonenumber`-style entry point, the same formatter is also available through `PhoneNumberUtil`:
+If you prefer a `libphonenumber`-style entry point, the same formatter is also available through `PhoneNumberUtil`:
 
 ```dart
 final phoneUtil = PhoneNumberUtil.instance;
@@ -284,6 +284,23 @@ final description = phone.getDescription();
 print(description); // France
 
 final phoneUtil = PhoneNumberUtil.instance;
+print(phoneUtil.getDescriptionForNumber(phone, Locale.english)); // France
+```
+
+Geocoding notes:
+
+* `PhoneNumber.getDescription()` defaults to `Locale.english`
+* The current offline geocoder returns English territory names
+* Pass `userRegion` to hide the description when the number belongs to the same region as the viewer
+
+### PhoneNumberUtil facade
+
+```dart
+final phoneUtil = PhoneNumberUtil.instance;
+
+final phone = phoneUtil.parse('0 655 5705 76', callerCountry: 'FR');
+print(phoneUtil.isValidNumber(phone)); // true
+print(phoneUtil.format(phone)); // 06 55 57 05 76
 print(phoneUtil.getDescriptionForNumber(phone, Locale.english)); // France
 ```
 

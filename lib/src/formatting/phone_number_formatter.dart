@@ -11,6 +11,7 @@ class PhoneNumberFormatter {
     String nsn,
     String isoCode, [
     NsnFormat format = NsnFormat.international,
+    bool addOptionalNationalPrefix = true,
   ]) {
     if (nsn.isEmpty) {
       return nsn;
@@ -58,10 +59,11 @@ class PhoneNumberFormatter {
         transformRule: transformRule,
         formatingRule: fallbackRule,
         isoCode: isoCode,
+        addOptionalNationalPrefix: addOptionalNationalPrefix,
       );
     }
 
-    if (missingDigits.isNotEmpty) {
+    if (missingDigits.isNotEmpty || formatingRule == null) {
       return _formatIncompleteNsn(
         nsn: nsn,
         pattern: fallbackRule["pattern"].toString(),
@@ -119,7 +121,8 @@ class PhoneNumberFormatter {
       if (literal.isNotEmpty) {
         final shouldPrintLiteral = groupIndex == 1
             ? groupIsComplete
-            : (groupIndex <= groups.length && groups[groupIndex - 2].isNotEmpty);
+            : (groupIndex <= groups.length &&
+                groups[groupIndex - 2].isNotEmpty);
         if (shouldPrintLiteral) buffer.write(literal);
       }
 
@@ -136,7 +139,15 @@ class PhoneNumberFormatter {
     required String transformRule,
     required Map<String, dynamic> formatingRule,
     required String isoCode,
+    required bool addOptionalNationalPrefix,
   }) {
+    final nationalPrefixIsOptional =
+        formatingRule["nationalPrefixOptionalWhenFormatting"]?.toString() ==
+            'true';
+    if (nationalPrefixIsOptional && !addOptionalNationalPrefix) {
+      return transformRule;
+    }
+
     final nationalPrefixFormattingRule =
         formatingRule["nationalPrefixFormattingRule"]?.toString();
     if (nationalPrefixFormattingRule == null ||
@@ -279,12 +290,29 @@ class PhoneNumberFormatter {
 
   // Returns (min, max) per group so callers can decide
   static List<({int min, int max})> _extractGroupLengthRanges(String pattern) {
-    final matches = RegExp(r'\\d\{(\d+)(?:,(\d+))?\}').allMatches(pattern);
-    return matches.map((m) {
-      final lo = int.parse(m.group(1)!);
-      final hi = m.group(2) != null ? int.parse(m.group(2)!) : lo;
-      return (min: lo, max: hi);
-    }).toList();
+    final digitToken = RegExp(r'\\d(?:\{(\d+)(?:,(\d+))?\})?');
+    final groups = RegExp(r'\((?!\?:)([^()]*)\)')
+        .allMatches(pattern)
+        .map((match) => match.group(1)!)
+        .toList();
+    final parts = groups.isEmpty ? [pattern] : groups;
+
+    return parts
+        .map((part) {
+          var minLength = 0;
+          var maxLength = 0;
+          for (final match in digitToken.allMatches(part)) {
+            final minDigits =
+                match.group(1) == null ? 1 : int.parse(match.group(1)!);
+            final maxDigits =
+                match.group(2) == null ? minDigits : int.parse(match.group(2)!);
+            minLength += minDigits;
+            maxLength += maxDigits;
+          }
+          return (min: minLength, max: maxLength);
+        })
+        .where((range) => range.max > 0)
+        .toList();
   }
 
 // Keep the old signature for callers that only need max (complete number path)

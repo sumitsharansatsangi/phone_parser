@@ -27,6 +27,25 @@ class PhoneParserTextInputFormatter {
   /// Whether the current input started with a leading plus sign.
   bool get hasLeadingPlus => _hasLeadingPlus;
 
+  /// Digits that count as the national significant number for the current
+  /// input.
+  String get nationalSignificantDigits {
+    final enteredDigits = _digits.toString();
+    if (enteredDigits.isEmpty) {
+      return '';
+    }
+
+    if (_hasLeadingPlus) {
+      final countryCode = _detectCountryCode(enteredDigits);
+      if (countryCode == null) {
+        return enteredDigits;
+      }
+      return enteredDigits.substring(countryCode.length);
+    }
+
+    return _localDigitsToNationalSignificantNumber(enteredDigits);
+  }
+
   /// Clears all previously entered input.
   void clear() {
     _digits.clear();
@@ -97,16 +116,35 @@ class PhoneParserTextInputFormatter {
     }
 
     final metadata = MetadataFinder.findMetadataForIsoCode(isoCode);
-    final nsn =
-        NationalNumberParser.transformLocalNsnToInternationalUsingPatterns(
-      enteredDigits,
-      metadata,
-    );
+    final nsn = _localDigitsToNationalSignificantNumber(enteredDigits);
     if (nsn.isEmpty) {
       return enteredDigits;
     }
 
-    return PhoneNumberFormatter.formatNsn(nsn, isoCode, format);
+    return PhoneNumberFormatter.formatNsn(
+      nsn,
+      isoCode,
+      format,
+      _hasEnteredNationalPrefix(enteredDigits, metadata),
+    );
+  }
+
+  String _localDigitsToNationalSignificantNumber(String enteredDigits) {
+    final metadata = MetadataFinder.findMetadataForIsoCode(isoCode);
+    return NationalNumberParser.transformLocalNsnToInternationalUsingPatterns(
+      enteredDigits,
+      metadata,
+    );
+  }
+
+  bool _hasEnteredNationalPrefix(
+    String enteredDigits,
+    Map<String, dynamic> metadata,
+  ) {
+    final nationalPrefix = metadata["nationalPrefix"]?.toString();
+    return nationalPrefix != null &&
+        nationalPrefix.isNotEmpty &&
+        enteredDigits.startsWith(nationalPrefix);
   }
 
   String _formatInternational() {

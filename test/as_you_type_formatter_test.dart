@@ -63,6 +63,76 @@ void main() {
       expect(outputs.last, '030 123456');
     });
 
+    test('formats numbers whose first metadata group is one digit', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('AE');
+      final outputs = <String>[];
+
+      for (final digit in '021234567'.split('')) {
+        outputs.add(formatter.inputDigit(digit));
+      }
+
+      expect(outputs[1], '02');
+      expect(outputs[2], '02 1');
+      expect(outputs.last, '02 123 4567');
+    });
+
+    test('does not inject optional Indian national prefix while typing mobile',
+        () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('IN');
+      final outputs = <String>[];
+
+      for (final digit in '9931571989'.split('')) {
+        outputs.add(formatter.inputDigit(digit));
+      }
+
+      expect(
+        outputs,
+        [
+          '9',
+          '99',
+          '993',
+          '9931',
+          '99315',
+          '99315 7',
+          '99315 71',
+          '99315 719',
+          '99315 7198',
+          '99315 71989',
+        ],
+      );
+
+      final deletionOutputs = <String>[];
+      for (var i = 0; i < 9; i++) {
+        deletionOutputs.add(formatter.removeLastDigit());
+      }
+
+      expect(
+        deletionOutputs,
+        [
+          '99315 7198',
+          '99315 719',
+          '99315 71',
+          '99315 7',
+          '99315',
+          '9931',
+          '993',
+          '99',
+          '9',
+        ],
+      );
+    });
+
+    test('keeps optional Indian national prefix when the user enters it', () {
+      final formatter = PhoneNumber.getAsYouTypeFormatter('IN');
+
+      String output = '';
+      for (final digit in '09931571989'.split('')) {
+        output = formatter.inputDigit(digit);
+      }
+
+      expect(output, '099315 71989');
+    });
+
     test('formats international input with a leading plus sign', () {
       final formatter = PhoneNumber.getAsYouTypeFormatter('FR');
 

@@ -83,18 +83,14 @@ class PhoneNumberFormatter {
     required String pattern,
     required String transformRule,
   }) {
-    final groupLengths = _extractGroupLengths(pattern);
-    if (groupLengths.isEmpty) {
-      return nsn;
-    }
+    final ranges = _extractGroupLengthRanges(pattern);
+    if (ranges.isEmpty) return nsn;
 
     final groups = <String>[];
     var start = 0;
-    for (final groupLength in groupLengths) {
-      if (start >= nsn.length) {
-        break;
-      }
-      final end = min(start + groupLength, nsn.length);
+    for (final range in ranges) {
+      if (start >= nsn.length) break;
+      final end = min(start + range.max, nsn.length);
       groups.add(nsn.substring(start, end));
       start = end;
     }
@@ -117,13 +113,14 @@ class PhoneNumberFormatter {
       final hasGroup = groupIndex <= groups.length;
       final groupValue = hasGroup ? groups[groupIndex - 1] : '';
       final groupIsComplete = hasGroup &&
-          groupIndex <= groupLengths.length &&
-          groupValue.length == groupLengths[groupIndex - 1];
+          groupIndex <= ranges.length &&
+          groupValue.length == ranges[groupIndex - 1].max;
 
-      if (literal.isNotEmpty &&
-          hasGroup &&
-          (groupIndex == 1 ? groupIsComplete : groupValue.isNotEmpty)) {
-        buffer.write(literal);
+      if (literal.isNotEmpty) {
+        final shouldPrintLiteral = groupIndex == 1
+            ? groupIsComplete
+            : (groupIndex <= groups.length && groups[groupIndex - 2].isNotEmpty);
+        if (shouldPrintLiteral) buffer.write(literal);
       }
 
       if (hasGroup) {
@@ -161,24 +158,29 @@ class PhoneNumberFormatter {
 
     return transformRule.replaceFirst(firstGroupToken, formattedFirstGroup);
   }
+
   static String _removeMissingDigits(String formatted, String missingDigits) {
-    while (missingDigits.isNotEmpty) {
-      // not an ending digit
-      final isEndingWithSpecialChar =
-          int.tryParse(formatted[formatted.length - 1]) == null;
-      if (isEndingWithSpecialChar) {
-        formatted = formatted.substring(0, formatted.length - 1);
+    var result = formatted;
+    var remaining = missingDigits;
+
+    while (remaining.isNotEmpty && result.isNotEmpty) {
+      if (int.tryParse(result[result.length - 1]) == null) {
+        // trailing separator — remove it but don't consume a missing digit
+        result = result.substring(0, result.length - 1);
       } else {
-        formatted = formatted.substring(0, formatted.length - 1);
-        missingDigits = missingDigits.substring(0, missingDigits.length - 1);
+        // real (fake) digit — consume one from both
+        result = result.substring(0, result.length - 1);
+        remaining = remaining.substring(0, remaining.length - 1);
       }
     }
-    final isEndingWithSpecialChar =
-        int.tryParse(formatted[formatted.length - 1]) == null;
-    if (isEndingWithSpecialChar) {
-      formatted = formatted.substring(0, formatted.length - 1);
+
+    // strip any trailing separator left after all fake digits removed
+    while (
+        result.isNotEmpty && int.tryParse(result[result.length - 1]) == null) {
+      result = result.substring(0, result.length - 1);
     }
-    return formatted;
+
+    return result;
   }
 
   /// returns 9's to have a valid length number
@@ -189,7 +191,7 @@ class PhoneNumberFormatter {
         .where((entry) => entry.key != "general" && entry.value.isNotEmpty)
         .map((entry) => entry.value.first);
     if (minLengths.isNotEmpty) {
-      final minLength = minLengths.reduce(max<int>);
+      final minLength = minLengths.reduce(min<int>);
       while ((nsn + missingDigits).length < minLength) {
         missingDigits += '9';
       }
@@ -216,11 +218,15 @@ class PhoneNumberFormatter {
     for (var rules in formatingRules) {
       // phonenumberkit seems to be using the last leading digit pattern
       // from the list of pattern so that's what we are going to do here as well
-      final matchLeading =
-          RegExp(rules["leadingDigits"].last).matchAsPrefix(nsn);
+      final dynamic rawLeading = rules["leadingDigits"];
+      final leadingDigits = rawLeading is List ? rawLeading : const [];
+      final matchLeading = leadingDigits.isEmpty ||
+          leadingDigits.every(
+            (p) => RegExp(p.toString()).matchAsPrefix(nsn) != null,
+          );
       final pattern = rules["pattern"];
       final matchPattern = RegExp('^(?:$pattern)\$').firstMatch(nsn);
-      if (matchLeading != null && matchPattern != null) {
+      if (matchLeading && matchPattern != null) {
         return rules;
       }
     }
@@ -233,29 +239,19 @@ class PhoneNumberFormatter {
     required String nsn,
   }) {
     Map<String, dynamic>? bestRule;
-    int? bestCapacity;
-    int bestGroupCount = -1;
+    int bestCapacity = 0;
 
     for (final rules in formatingRules) {
-      if (!_matchesLeadingDigits(rules, nsn)) {
-        continue;
-      }
+      if (!_matchesLeadingDigits(rules, nsn)) continue;
 
       final groupLengths = _extractGroupLengths(rules["pattern"].toString());
-      final capacity = groupLengths.fold<int>(0, (sum, value) => sum + value);
-      final groupCount = groupLengths.length;
-      if (capacity < nsn.length) {
-        continue;
-      }
+      final capacity = groupLengths.fold<int>(0, (s, v) => s + v);
+      if (capacity < nsn.length) continue;
 
-      final isBetterGroupShape = groupCount > bestGroupCount;
-      final isBetterCapacity = groupCount == bestGroupCount &&
-          (bestCapacity == null || capacity < bestCapacity);
-
-      if (bestRule == null || isBetterGroupShape || isBetterCapacity) {
+      // prefer tightest fit (smallest capacity that still covers the NSN)
+      if (bestRule == null || capacity < bestCapacity) {
         bestRule = rules;
         bestCapacity = capacity;
-        bestGroupCount = groupCount;
       }
     }
 
@@ -269,7 +265,9 @@ class PhoneNumberFormatter {
     }
 
     if (leadingDigits is List && leadingDigits.isNotEmpty) {
-      return RegExp(leadingDigits.last.toString()).matchAsPrefix(nsn) != null;
+      return leadingDigits.every(
+        (p) => RegExp(p.toString()).matchAsPrefix(nsn) != null,
+      );
     }
 
     if (leadingDigits is String && leadingDigits.isNotEmpty) {
@@ -279,13 +277,19 @@ class PhoneNumberFormatter {
     return true;
   }
 
-  static List<int> _extractGroupLengths(String pattern) {
+  // Returns (min, max) per group so callers can decide
+  static List<({int min, int max})> _extractGroupLengthRanges(String pattern) {
     final matches = RegExp(r'\\d\{(\d+)(?:,(\d+))?\}').allMatches(pattern);
-    return matches.map((match) {
-      final maxLengthGroup = match.group(2);
-      return int.parse(maxLengthGroup ?? match.group(1)!);
+    return matches.map((m) {
+      final lo = int.parse(m.group(1)!);
+      final hi = m.group(2) != null ? int.parse(m.group(2)!) : lo;
+      return (min: lo, max: hi);
     }).toList();
   }
+
+// Keep the old signature for callers that only need max (complete number path)
+  static List<int> _extractGroupLengths(String pattern) =>
+      _extractGroupLengthRanges(pattern).map((r) => r.max).toList();
 
   static String? _formatNanpaSharedRegionWithoutMetadata({
     required String nsn,

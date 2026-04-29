@@ -95,7 +95,7 @@ class PhoneNumber {
   }
 
   /// formats the nsn, if no [isoCode] is provided the phone number region is used.
-  String formatNsn({String? isoCode, NsnFormat format = NsnFormat.national}) =>
+  String formatNsn({String? isoCode, NsnFormat format = NsnFormat.international}) =>
       PhoneNumberFormatter.formatNsn(nsn, isoCode ?? this.isoCode, format);
 
   /// Returns a human-readable territory description for this phone number.

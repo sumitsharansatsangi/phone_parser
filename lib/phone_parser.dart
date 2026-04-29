@@ -16,5 +16,5 @@ export 'src/formatting/phone_number_formatter.dart';
 export 'src/formatting/as_you_type_formatter.dart';
 export 'src/geocoding/locale.dart';
 export 'src/geocoding/phone_number_offline_geocoder.dart';
-export '/src/metadata/metadata_finder.dart';
-export '/src/download_file/download_file.dart' show MetadataSource;
+export 'src/metadata/metadata_finder.dart';
+export 'src/download_file/download_file.dart' show MetadataSource;

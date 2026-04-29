@@ -10,7 +10,7 @@ class PhoneNumberFormatter {
   static String formatNsn(
     String nsn,
     String isoCode, [
-    NsnFormat format = NsnFormat.national,
+    NsnFormat format = NsnFormat.international,
   ]) {
     if (nsn.isEmpty) {
       return nsn;
@@ -161,7 +161,6 @@ class PhoneNumberFormatter {
 
     return transformRule.replaceFirst(firstGroupToken, formattedFirstGroup);
   }
-
   static String _removeMissingDigits(String formatted, String missingDigits) {
     while (missingDigits.isNotEmpty) {
       // not an ending digit
